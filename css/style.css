@@ -184,9 +184,10 @@
 
   /* FAQ */
   #faq { background: var(--bg); }
-  .faq-grid { max-width: 780px; }
-  .faq-item { border: 1px solid var(--border); border-radius: 14px; margin-bottom: .8rem; overflow: hidden; transition: border-color .3s; }
+  .faq-grid { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;margin: 0 auto;align-items: start;}
+  .faq-item { border: 1px solid var(--border); border-radius: 14px; margin-bottom: .8rem; overflow: hidden; transition: border-color .3s; height: fit-content;}
   .faq-item.open { border-color: rgba(124,106,255,.4); }
+  @media (max-width:768px){.faq-grid{grid-template-columns:1fr}}
   .faq-question { display: flex; align-items: center; justify-content: space-between; padding: 1.3rem 1.5rem; cursor: pointer; background: var(--surface); gap: 1rem; user-select: none; transition: background .2s; }
   .faq-question:hover { background: var(--surface2); }
   .faq-q-text { font-family: 'Outfit', sans-serif; font-size: .95rem; font-weight: 700; line-height: 1.4; }

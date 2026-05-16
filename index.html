@@ -115,7 +115,7 @@
       <p>Outside of work, I've published <span>research papers</span> on ML-driven food recommendation and automated credit card fraud detection  because I love building things that truly matter.</p>
       <div style="display:flex;gap:1rem;margin-top:1.8rem;flex-wrap:wrap;">
         <a href="mailto:ainsleycardozo11@gmail.com?subject=Hello%20Ainsley!&body=Hi%20Ainsley%2C%0A%0AI%20visited%20your%20portfolio%20and%20wanted%20to%20reach%20out.%0A%0A" class="btn btn-primary" style="font-size:.85rem;padding:.65rem 1.4rem;"><i class="fa-solid fa-envelope"></i> Email Me</a>
-        <a href="https://www.linkedin.com/in/ainsley-c2922k11m/" target="_blank" class="btn btn-outline" style="font-size:.85rem;padding:.65rem 1.4rem;"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+        <a href="https://www.linkedin.com/in/ainsley-c-2922k11m/" target="_blank" class="btn btn-outline" style="font-size:.85rem;padding:.65rem 1.4rem;"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
       </div>
     </div>
     <div class="about-visual reveal">
@@ -306,26 +306,28 @@
     <h2 class="section-title reveal">Got a project in mind?</h2>
     <p class="section-sub reveal">I'm always open to new opportunities, collaborations, or just a friendly chat about tech and design.</p>
     <div class="contact-links reveal">
-      <a href="mailto:ainsleycardozo11@gmail.com?subject=Let%27s%20Work%20Together&body=Hi%20Ainsley%2C%0A%0AI%20came%20across%20your%20portfolio%20and%20would%20love%20to%20discuss%20a%20project%20with%20you.%0A%0A" class="contact-link"><i class="fa-solid fa-envelope"></i> Email</a>
+      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ainsleycardozo11@gmail.com&su=Let's%20Work%20Together&body=Hi%20Ainsley,%0A%0AI%20came%20across%20your%20portfolio%20and%20would%20love%20to%20discuss%20a%20project%20with%20you.%0A%0A"target=_blank class="contact-link"><i class="fa-solid fa-envelope"></i> Email</a>
       <a href="tel:+919833859009" class="contact-link"><i class="fa-solid fa-phone"></i> +91 98338 59009</a>
-      <a href="https://www.linkedin.com/in/ainsley-c2922k11m/" target="_blank" class="contact-link"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+      <a href="https://www.linkedin.com/in/ainsley-c-2922k11m/" target="_blank" class="contact-link"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
       <a href="https://github.com/anly07" target="_blank" class="contact-link"><i class="fa-brands fa-github"></i> GitHub</a>
     </div>
-    <a href="mailto:ainsleycardozo11@gmail.com?subject=Let%27s%20Work%20Together&body=Hi%20Ainsley%2C%0A%0AI%20came%20across%20your%20portfolio%20and%20would%20love%20to%20discuss%20a%20project%20with%20you.%0A%0A" class="contact-email reveal">ainsleycardozo11@gmail.com →</a>
+    <!-- <a class="contact-email reveal" href="https://mail.google.com/mail/?view=cm&fs=1&to=ainsleycardozo11@gmail.com&su=Let's%20Work%20Together&body=Hi%20Ainsley,%0A%0AI%20came%20across%20your%20portfolio%20and%20would%20love%20to%20discuss%20a%20project%20with%20you.%0A%0A"target=_blank>ainsleycardozo11@gmail.com →</a> -->
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
   <span class="footer-logo">Ainsley Cardozo</span>
-  <p>© 2025 Ainsley Cardozo · Frontend Developer · Thane, Maharashtra</p>
+  <p>© <span id="year"></span> Ainsley Cardozo · Frontend Developer · Thane, Maharashtra</p>
   <div style="display:flex;gap:1rem;">
-    <a href="https://www.linkedin.com/in/ainsley-c2922k11m/" target="_blank" style="color:var(--muted);font-size:1rem;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'"><i class="fa-brands fa-linkedin"></i></a>
+    <a href="https://www.linkedin.com/in/ainsley-c-2922k11m/" target="_blank" style="color:var(--muted);font-size:1rem;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'"><i class="fa-brands fa-linkedin"></i></a>
     <a href="https://github.com/anly07" target="_blank" style="color:var(--muted);font-size:1rem;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'"><i class="fa-brands fa-github"></i></a>
-    <a href="mailto:ainsleycardozo11@gmail.com?subject=Hello%20Ainsley!&body=Hi%20Ainsley%2C%0A" style="color:var(--muted);font-size:1rem;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'"><i class="fa-solid fa-envelope"></i></a>
+    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=ainsleycardozo11@gmail.com&su=Let's%20Work%20Together&body=Hi%20Ainsley,%0A%0AI%20came%20across%20your%20portfolio%20and%20would%20love%20to%20discuss%20a%20project%20with%20you.%0A%0A"target=_blank style="color:var(--muted);font-size:1rem;transition:color .2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'"><i class="fa-solid fa-envelope"></i></a>
   </div>
 </footer>
-
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
 <script>
   // Cursor
   const cursor=document.getElementById('cursor'), ring=document.getElementById('cursorRing');
@@ -367,13 +369,20 @@
   document.querySelectorAll('.progress-section').forEach(s=>barObs.observe(s));
 
   // FAQ accordion
-  function toggleFaq(questionEl){
-    const item=questionEl.parentElement;
-    const isOpen=item.classList.contains('open');
-    document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
-    if(!isOpen) item.classList.add('open');
-  }
+  function toggleFaq(questionEl) {
+    const item = questionEl.parentElement;
+    const isOpen = item.classList.contains('open');
 
+    // Close all FAQs
+    document.querySelectorAll('.faq-item').forEach(faq => {
+      faq.classList.remove('open');
+    });
+
+    // Open only if it was previously closed
+    if (!isOpen) {
+      item.classList.add('open');
+    }
+  }
   // Navbar shrink
   window.addEventListener('scroll',()=>{ document.getElementById('navbar').style.padding=window.scrollY>60?'.8rem 5%':'1.2rem 5%'; });
 </script>
