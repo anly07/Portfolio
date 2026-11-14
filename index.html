@@ -40,14 +40,14 @@
   document.documentElement.classList.add('js');
 </script>
 <!-- Appearance engine runs first, synchronously, so the saved accent + theme paint before first render (no colour flash). -->
-<script src="js/theme.js"></script>
+<script src="./site/js/theme.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://script.google.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/tokens.css" />
-<link rel="stylesheet" href="css/portfolio.css" />
+<link rel="stylesheet" href="./site/css/tokens.css" />
+<link rel="stylesheet" href="./site/css/portfolio.css" />
 
 <script type="application/ld+json">
 {
@@ -82,7 +82,7 @@
       <a href="#about" class="nav-link" data-nav>About</a>
       <a href="#projects" class="nav-link" data-nav>Projects</a>
       <a href="#designs" class="nav-link" data-nav>Designs</a>
-      <a href="#tools" class="nav-link" data-nav>Tools</a>
+      <!-- <a href="#tools" class="nav-link" data-nav>Tools</a> -->
       <a href="#blog" class="nav-link" data-nav>Blog</a>
       <a href="#contact" class="nav-link" data-nav>Contact</a>
     </nav>
@@ -435,10 +435,10 @@
     <div class="footer-base">
       <p>© <span id="year">2026</span> Ainsley C. Built with care.</p>
       <nav aria-label="Legal">
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="terms.html">Terms &amp; Conditions</a>
+        <a href="./site/privacy.html">Privacy Policy</a>
+        <a href="./site/terms.html">Terms &amp; Conditions</a>
         <a href="#home">Back to top ↑</a>
-        <a href="admin.html" class="admin-dot" aria-label="Admin login" title="Admin" rel="nofollow">
+        <a href="./site/admin.html" class="admin-dot" aria-label="Admin login" title="Admin" rel="nofollow">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
         </a>
       </nav>
@@ -475,6 +475,6 @@
 
 <!-- <noscript><p class="noscript">This portfolio loads its projects and designs with JavaScript. You can still reach me at <a href="mailto:hello@ainsleyc.dev">hello@ainsleyc.dev</a>.</p></noscript> -->
 
-<script src="js/main.js" defer></script>
+<script src="./site/js/main.js" defer></script>
 </body>
 </html>
