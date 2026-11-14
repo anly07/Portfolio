@@ -1,0 +1,26 @@
+/* Shared styles for the legal + error pages. Built on tokens.css (so the admin-chosen accent and theme apply). */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.page{position:relative;max-width:720px;margin:0 auto;padding:clamp(48px,9vw,96px) 20px}
+.page::before{content:"";position:fixed;inset:-20% -10% auto auto;width:60vw;height:60vw;max-width:640px;max-height:640px;background:radial-gradient(circle,var(--accent-glow),transparent 65%);opacity:.5;z-index:-1;pointer-events:none}
+.back{display:inline-flex;align-items:center;min-height:44px;font-size:.9rem;color:var(--text-soft);text-decoration:none}
+.back:hover{color:var(--accent-text)}
+h1{font-family:'Sora','Inter',sans-serif;letter-spacing:-.035em;font-size:clamp(2rem,1.4rem + 3vw,3rem);line-height:1.1;margin:1rem 0 .4rem}
+.meta{color:var(--muted);font-size:.88rem;margin-bottom:2.2rem}
+.doc section{padding:1.2rem 0;border-top:1px solid var(--border)}
+.doc h2{font-size:1.05rem;margin:0 0 .5rem;font-weight:600}
+.doc p,.doc li{color:var(--text-soft);font-size:.96rem;margin:.3rem 0}
+.doc ul{padding-left:1.2rem}
+.err-wrap{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+.code{font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.22em;color:var(--accent-text)}
+.err-wrap h1{margin:1rem 0 0;max-width:16ch}
+.err-wrap p.lead{color:var(--text-soft);max-width:44ch;margin:1rem 0 0}
+.row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:2rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:.7rem 1.5rem;border-radius:999px;font-weight:600;font-size:.94rem;text-decoration:none;transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .25s}
+.btn:hover{transform:translateY(-2px)}
+.btn-primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 10px 28px -10px var(--accent-glow)}
+.btn-ghost{border:1.5px solid var(--border);background:var(--card)}
+.btn-ghost:hover{border-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001ms!important}}

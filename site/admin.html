@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#F6F7FC" data-dynamic />
+<title>Admin · Ainsley</title>
+<script src="js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css" />
+<style>
+  :root{ --surface2:var(--surface-2); --accent2:var(--accent-2); --danger:#E5546B; --ok:#2FA67C; --warn:#C98A1B; }
+  html.dark{ --danger:#FF7A8E; --ok:#4BD6A3; --warn:#F0B84F; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;min-height:100%;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  h1,h2,h3,.display{font-family:'Sora','Inter',sans-serif;letter-spacing:-.02em;}
+  button{font:inherit;}
+  svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+
+  /* aurora backdrop (follows the chosen accent) */
+  .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .aurora::before,.aurora::after{content:'';position:absolute;border-radius:50%;filter:blur(90px);opacity:.28;}
+  .aurora::before{width:46vw;height:46vw;top:-14%;left:-10%;background:radial-gradient(circle,var(--accent),transparent 68%);}
+  .aurora::after{width:42vw;height:42vw;bottom:-16%;right:-8%;background:radial-gradient(circle,var(--accent-2),transparent 68%);}
+  html.dark .aurora::before,html.dark .aurora::after{opacity:.2;}
+  @keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+
+  /* ---------- Buttons + fields ---------- */
+  button{border:none;cursor:pointer;font-weight:600;transition:transform .15s var(--ease),box-shadow .2s var(--ease),background .2s,color .2s,border-color .2s,opacity .2s;}
+  button:active{transform:scale(.97);}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;font-size:14px;color:var(--accent-ink);background:var(--accent);box-shadow:0 12px 26px -12px var(--accent-glow);}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 16px 32px -12px var(--accent-glow);}
+  .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border);box-shadow:none;}
+  .btn.secondary:hover{border-color:var(--accent);color:var(--accent-text);transform:none;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn.loading{pointer-events:none;}
+  .btn.loading::before{content:'';width:15px;height:15px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--text-soft);margin:16px 0 6px;}
+  input,select,textarea{width:100%;min-height:46px;padding:11px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:inherit;font-size:14px;transition:border-color .2s,box-shadow .2s,background .2s;}
+  textarea{min-height:90px;resize:vertical;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:var(--card);}
+  input[type=file]{padding:9px 12px;}
+  .icon-btn{width:42px;height:42px;display:inline-grid;place-items:center;border-radius:50%;background:var(--card);border:1px solid var(--border);color:var(--text);}
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent-text);}
+  html:not(.dark) .theme-icon .moon{display:block;} html:not(.dark) .theme-icon .sun{display:none;}
+  html.dark .theme-icon .moon{display:none;} html.dark .theme-icon .sun{display:block;}
+  .err{color:var(--danger);font-size:13px;margin-top:14px;min-height:18px;}
+  .ok-msg{color:var(--ok);font-size:13px;margin-top:14px;min-height:18px;}
+  .err:empty,.ok-msg:empty{margin-top:0;min-height:0;}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;}
+  .links{display:flex;justify-content:center;gap:16px;margin-top:18px;}
+  .links button.link,button.link{background:none;border:none;padding:6px;font-size:13px;color:var(--accent-text);font-weight:600;}
+  .links button.link:hover{text-decoration:underline;}
+  a.back{font-size:12.5px;color:var(--muted);text-decoration:none;transition:color .2s;}
+  a.back:hover{color:var(--accent-text);}
+  .secret-box{border:1px dashed var(--accent);border-radius:var(--radius-sm);padding:14px;font-family:ui-monospace,Menlo,monospace;font-size:13px;word-break:break-all;text-align:center;margin-top:12px;background:var(--accent-tint);}
+  .logo{font-family:'Sora',sans-serif;font-weight:700;letter-spacing:-.03em;}
+  .logo span{color:var(--accent);}
+
+  /* ---------- Login ---------- */
+  #view-login{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr);}
+  .auth-hero{display:none;position:relative;overflow:hidden;padding:48px;color:#fff;background:linear-gradient(150deg,var(--accent) 0%,color-mix(in srgb,var(--accent) 55%,#14152a) 62%,color-mix(in srgb,var(--accent-2) 60%,#14152a) 100%);}
+  .auth-hero::before,.auth-hero::after{content:'';position:absolute;border-radius:50%;filter:blur(60px);}
+  .auth-hero::before{width:360px;height:360px;right:-90px;top:-80px;background:color-mix(in srgb,var(--accent-2) 70%,#fff);opacity:.45;}
+  .auth-hero::after{width:300px;height:300px;left:-80px;bottom:-60px;background:#fff;opacity:.16;}
+  .auth-hero > *{position:relative;z-index:1;}
+  .auth-hero .logo{font-size:26px;color:#fff;} .auth-hero .logo span{color:#fff;opacity:.7;}
+  .auth-hero h2{font-size:clamp(30px,3.4vw,44px);line-height:1.1;margin:0;font-weight:600;max-width:12ch;}
+  .auth-hero p{margin:16px 0 0;max-width:38ch;opacity:.86;font-size:15px;}
+  .auth-feats{list-style:none;margin:36px 0 0;padding:0;display:grid;gap:12px;}
+  .auth-feats li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:13.5px;font-weight:500;}
+  .auth-hero-inner{display:flex;flex-direction:column;justify-content:space-between;height:100%;gap:48px;}
+  .auth-main{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:28px 20px;}
+  .brand-m{display:flex;align-items:center;gap:10px;animation:rise .5s var(--ease);}
+  .brand-m .logo{font-size:24px;} .brand-m .tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:3px 9px;border:1px solid var(--border);border-radius:999px;}
+  .card{width:100%;max-width:420px;border-radius:var(--radius);padding:34px 30px 26px;background:var(--glass);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);border:1px solid var(--glass-border);box-shadow:var(--shadow),var(--shadow-glow);animation:rise .55s var(--ease);}
+  .card h1{font-size:24px;margin:0 0 4px;font-weight:600;}
+  .card p.sub{color:var(--text-soft);font-size:14px;margin:0 0 6px;}
+  .card > form button[type="submit"],#btn-totp-continue{width:100%;margin-top:22px;}
+  .card-foot{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+  .card-foot div{display:flex;gap:16px;}
+  .pw-wrap{position:relative;} .pw-wrap input{padding-right:56px;}
+  .pw-wrap button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;color:var(--muted);font-size:12px;padding:8px 10px;border-radius:10px;}
+  .pw-wrap button:hover{color:var(--accent-text);}
+  @media (min-width:960px){
+    #view-login{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);}
+    .auth-hero{display:block;}
+    .brand-m{display:none;}
+    .auth-main{padding:48px;}
+  }
+
+  /* ---------- Dashboard shell ---------- */
+  #view-dashboard{display:none;position:relative;z-index:1;min-height:100vh;}
+  .shell{display:grid;grid-template-columns:minmax(0,1fr);min-height:100vh;}
+  .side{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--glass);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border-bottom:1px solid var(--glass-border);}
+  .side .logo{font-size:20px;padding:0 6px;white-space:nowrap;}
+  .side-tag{display:none;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:2px 8px 18px;}
+  #tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px;}
+  #tabs::-webkit-scrollbar{display:none;}
+  #tabs button{flex:none;display:inline-flex;align-items:center;gap:9px;min-height:42px;padding:0 14px;border-radius:999px;background:none;color:var(--text-soft);font-size:13.5px;}
+  #tabs button:hover{background:var(--surface-2);color:var(--text);}
+  #tabs button.active{background:var(--accent);color:var(--accent-ink);box-shadow:0 10px 22px -10px var(--accent-glow);}
+  .side-foot{display:none;flex-direction:column;gap:10px;margin-top:auto;}
+  .side-foot .row{display:flex;gap:8px;align-items:center;}
+  #idle-timeout{min-height:40px;font-size:12.5px;padding:8px 12px;}
+  #logout{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 16px;border-radius:999px;background:var(--card);border:1px solid var(--border);color:var(--text-soft);flex:1;}
+  #logout:hover{color:var(--danger);border-color:var(--danger);}
+  .side-mini{display:flex;gap:6px;}
+  .content{min-width:0;padding:22px 16px 80px;max-width:1120px;width:100%;margin:0 auto;}
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;animation:fade .4s;}
+  .topbar h1{margin:0;font-size:clamp(24px,3vw,32px);font-weight:600;}
+  .topbar p{margin:4px 0 0;color:var(--text-soft);font-size:14px;}
+  .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .search{position:relative;} .search input{padding-left:40px;min-height:44px;border-radius:999px;width:220px;max-width:100%;}
+  .search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;width:16px;height:16px;}
+  @media (min-width:960px){
+    .shell{grid-template-columns:260px minmax(0,1fr);}
+    .side{position:sticky;top:0;height:100vh;flex-direction:column;align-items:stretch;gap:0;padding:26px 16px 20px;border-bottom:none;border-right:1px solid var(--glass-border);}
+    .side .logo{font-size:26px;padding:0 10px;} .side-tag{display:block;}
+    #tabs{flex-direction:column;flex:none;overflow:visible;gap:4px;}
+    #tabs button{min-height:46px;padding:0 16px;border-radius:14px;width:100%;}
+    .side-foot{display:flex;} .side-mini{display:none;}
+    .content{padding:36px 40px 80px;}
+  }
+  @media (max-width:959px){ .side .side-mini-wrap{display:flex;} }
+
+  /* ---------- Stats ---------- */
+  #stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:0 0 24px;}
+  #stats:empty{display:none;}
+  .stat{display:flex;align-items:center;gap:14px;padding:18px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .25s;animation:rise .45s var(--ease) both;}
+  .stat:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--accent) 45%,var(--border));}
+  .stat .ico{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--accent-tint);color:var(--accent-text);flex:none;}
+  .stat .num{font-family:'Sora',sans-serif;font-size:26px;font-weight:600;line-height:1.1;letter-spacing:-.03em;}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* ---------- Lists ---------- */
+  .panel,.card-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm);animation:rise .4s var(--ease);}
+  .list{display:grid;gap:10px;}
+  .row-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:12px 14px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:transform .2s var(--ease),border-color .2s,box-shadow .2s;animation:rise .4s var(--ease) both;}
+  .row-item:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--border));box-shadow:var(--shadow);transform:translateY(-1px);}
+  .thumb{width:60px;height:60px;border-radius:14px;overflow:hidden;background:var(--gradient-accent);display:grid;place-items:center;color:var(--accent-ink);font-family:'Sora',sans-serif;font-weight:600;font-size:20px;}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .row-main{min-width:0;}
+  .row-title{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:8px;}
+  .row-sub{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;}
+  .row-actions{display:flex;gap:6px;}
+  .row-actions button{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border-radius:999px;background:var(--surface-2);color:var(--text-soft);font-size:12.5px;}
+  .row-actions button:hover{color:var(--accent-text);background:var(--accent-tint);}
+  .row-actions button.del:hover{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,var(--card));}
+  .row-actions .lbl{display:none;}
+  @media (min-width:640px){ .row-actions .lbl{display:inline;} }
+  @media (max-width:520px){ .row-item{grid-template-columns:auto minmax(0,1fr);} .row-actions{grid-column:1 / -1;justify-content:flex-end;} .thumb{width:52px;height:52px;} }
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--surface-2);color:var(--text-soft);}
+  .badge{padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:capitalize;}
+  .badge.new{background:color-mix(in srgb,var(--ok) 16%,var(--card));color:var(--ok);}
+  .badge.upcoming{background:var(--accent-tint);color:var(--accent-text);}
+  .badge.live{background:color-mix(in srgb,var(--ok) 16%,var(--card));color:var(--ok);}
+  .badge.hidden{background:color-mix(in srgb,var(--warn) 16%,var(--card));color:var(--warn);}
+  .empty{color:var(--muted);font-size:14px;padding:44px 24px;text-align:center;background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);}
+  .skeleton{background:linear-gradient(90deg,var(--surface-2) 25%,var(--card) 37%,var(--surface-2) 63%);background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:var(--radius);height:84px;margin-bottom:10px;}
+  @keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{position:fixed;inset:0;background:color-mix(in srgb,#0b0c16 55%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px;z-index:20;animation:fade .2s;}
+  .modal{border-radius:var(--radius);padding:26px;width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);animation:rise .3s var(--ease);}
+  .modal h3{margin:0 0 4px;font-size:20px;font-weight:600;}
+  .modal-actions{display:flex;gap:10px;margin-top:22px;justify-content:flex-end;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:var(--bg);padding:12px 22px;border-radius:999px;font-size:13.5px;font-weight:500;opacity:0;transition:.3s var(--ease);pointer-events:none;z-index:30;box-shadow:var(--shadow);max-width:90vw;}
+  .toast.show{opacity:1;transform:translateX(-50%);}
+
+  /* ---------- Analytics ---------- */
+  .grid2{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);margin-top:16px;}
+  @media (min-width:900px){ .grid2{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .panel h3{margin:0 0 14px;font-size:15px;font-weight:600;}
+  .chart{width:100%;height:auto;display:block;overflow:visible;}
+  .chart .grid{stroke:var(--border);stroke-width:1;} .chart text{fill:var(--muted);font-size:11px;font-family:'Inter',sans-serif;}
+  .chart .line{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+  .chart .dot{fill:var(--card);stroke:var(--accent);stroke-width:2;}
+  .chart .dot:hover{r:6;}
+  .bars{display:grid;gap:10px;}
+  @media (max-width:560px){ .chart text{font-size:17px;} }
+  .bar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:13px;}
+  .bar-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .bar-row .ct{color:var(--muted);font-variant-numeric:tabular-nums;}
+  .bar-row .track{grid-column:1 / -1;height:6px;border-radius:6px;background:var(--surface-2);overflow:hidden;}
+  .bar-row .fill{height:100%;border-radius:6px;background:var(--gradient-accent);}
+  .sec-table{width:100%;border-collapse:collapse;} .sec-table td{padding:8px 6px;border-bottom:1px solid var(--border);font-size:12.5px;} .sec-table tr:last-child td{border-bottom:none;}
+  .cfg{display:flex;gap:10px;align-items:flex-start;font-size:13px;padding:6px 0;}
+  .set-h{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;}
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+  .sw{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"d n" "d h";column-gap:10px;align-items:center;text-align:left;padding:10px 12px;min-height:56px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);border-radius:14px;}
+  .sw:hover{border-color:var(--accent);}
+  .sw:focus-visible,.mode:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;}
+  .sw .dot{grid-area:d;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);}
+  .sw .nm{grid-area:n;font-size:13px;font-weight:600;line-height:1.2;}
+  .sw .hx{grid-area:h;font-size:11px;color:var(--muted);font-family:monospace;}
+  .sw .tick{position:absolute;top:8px;right:10px;font-size:13px;color:var(--accent2);opacity:0;}
+  .sw.sel{border-color:var(--text);background:var(--surface2);}
+  .sw.sel .tick{opacity:1;}
+  .modes{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--border);}
+  .mode{padding:9px 16px;border-radius:999px;background:none;color:var(--muted);font-size:13px;min-height:40px;}
+  .mode.sel{background:var(--surface2);color:var(--text);box-shadow:0 0 0 1px var(--border);}
+  .pending-flag{margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(255,200,80,.15);color:#ffd27a;font-size:10px;letter-spacing:0;text-transform:none;}
+  .pv{--bgc:#F6F7FC;--cardc:#fff;--tx:#25283B;--mu:#85899E;--bd:#E7E9F2;border-radius:16px;border:1px solid var(--bd);background:var(--bgc);color:var(--tx);overflow:hidden;font-family:inherit;transition:background .3s,color .3s;}
+  .pv.dark{--bgc:#10111D;--cardc:#191B2B;--tx:#F1F1FA;--mu:#A0A3B8;--bd:#2B2E43;}
+  .pv-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--bd);font-size:12px;}
+  .pv-nav b{margin-right:auto;font-size:14px;} .pv-nav i{font-style:normal;color:var(--pa);}
+  .pv-link{padding:4px 10px;border-radius:999px;color:var(--mu);} .pv-link.on{background:color-mix(in srgb,var(--pa) 16%,var(--cardc));color:var(--pa);font-weight:600;}
+  .pv-cta{padding:6px 14px;border-radius:999px;background:var(--pa);color:var(--pink);font-weight:600;}
+  .pv-body{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;padding:14px;}
+  @media(max-width:560px){.pv-body{grid-template-columns:1fr;}}
+  .pv-card{position:relative;background:var(--cardc);border:1px solid color-mix(in srgb,var(--pa) 40%,var(--bd));border-radius:14px;padding:10px;box-shadow:0 14px 34px -18px var(--pa);}
+  .pv-img{height:70px;border-radius:10px;background:linear-gradient(120deg,var(--pa),var(--pa2));}
+  .pv-badge{position:absolute;top:16px;right:16px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--pa);color:var(--pink);}
+  .pv-card h4{margin:10px 0 2px;font-size:14px;} .pv-card p{margin:0;font-size:12px;color:var(--mu);}
+  .pv-a{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:var(--pa);text-decoration:none;}
+  .pv-side{display:flex;flex-direction:column;gap:10px;justify-content:center;}
+  .pv-bar{height:8px;border-radius:8px;background:linear-gradient(90deg,var(--pa),var(--pa2));} .pv-bar.s{width:60%;opacity:.6;}
+  .pv-btn{display:inline-flex;justify-content:center;padding:9px 14px;border-radius:999px;background:var(--pa);color:var(--pink);font-size:12px;font-weight:600;}
+  .pv-btn.ghost{background:none;border:1.5px solid var(--bd);color:var(--tx);}
+  .set-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+  .set-actions .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+  .cur-img{display:flex;align-items:center;gap:10px;margin:2px 0 8px;font-size:11px;color:var(--muted);}
+  .cur-img img{width:64px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--border);}
+  .search{margin:0 !important;font-size:inherit;font-weight:inherit;color:inherit;}
+  @media (min-width:960px){ #mobile-foot{display:none !important;} }
+  .pv-card h4{font-family:'Sora',sans-serif;}
+  .set-actions .btn{min-height:44px;}
+  .sw .hx{font-family:ui-monospace,Menlo,monospace;}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-proj" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-design" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.3a3.7 3.7 0 0 0 3.7-3.7C21 7 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.3-.6-.6-2.3z"/></symbol>
+  <symbol id="i-blog" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5M8 13h8M8 17h6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 22a10 10 0 1 1 10-10c0 2.8-2 3-4 3h-2a2 2 0 0 0-1 3.7c.6.4 0 3.3-3 3.3z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.9 6.4 20l1.3-6.2L3 9.5l6.3-.7z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+</svg>
+
+<!-- ==================== LOGIN / SETUP / FORGOT ==================== -->
+<div id="view-login">
+  <aside class="auth-hero" aria-hidden="false">
+    <div class="auth-hero-inner">
+      <div class="logo">Ainsley<span>.</span></div>
+      <div>
+        <h2 class="display">Your portfolio, under your control.</h2>
+        <p>Manage projects, designs, testimonials and the look of your site from one place.</p>
+        <ul class="auth-feats">
+          <li><svg class="i"><use href="#i-lock"/></svg>Password + authenticator-app sign-in</li>
+          <li><svg class="i"><use href="#i-pen"/></svg>Edit live content in seconds</li>
+          <li><svg class="i"><use href="#i-palette"/></svg>Accent colours and light/dark theme</li>
+        </ul>
+      </div>
+      <div style="font-size:12px;opacity:.7;">Private admin area</div>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="brand-m"><div class="logo">Ainsley<span>.</span></div><div class="tag">Admin</div></div>
+
+    <div class="card">
+      <h1 id="title">Welcome back</h1>
+      <p class="sub" id="subtitle">Sign in to manage the site.</p>
+
+      <!-- First-run only: create the one admin account -->
+      <form id="step-create" style="display:none;">
+        <label for="create-username">Username</label>
+        <input id="create-username" required minlength="3" maxlength="60" />
+        <label for="create-password">New password (min 10 characters)</label>
+        <input id="create-password" type="password" required minlength="10" autocomplete="new-password" />
+        <label for="create-password-confirm">Re-enter new password</label>
+        <input id="create-password-confirm" type="password" required minlength="10" autocomplete="new-password" />
+        <label for="create-email">Recovery email (used for "Forgot password" later)</label>
+        <input id="create-email" type="email" required />
+        <input type="text" id="create-website" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" />
+        <button type="submit" class="btn" id="btn-create">Create admin account</button>
+      </form>
+
+      <!-- One-time TOTP reveal after successful setup -->
+      <div id="step-totp-reveal" style="display:none;">
+        <p class="hint" style="margin-top:0;">Account created. Scan this with Google Authenticator or Authy — it will not be shown again.</p>
+        <div id="totp-qr" style="display:flex;justify-content:center;background:#fff;border-radius:14px;padding:16px;margin-top:10px;min-height:176px;align-items:center;"><span style="color:#888;font-size:12px;">Generating QR code…</span></div>
+        <button type="button" id="btn-toggle-key" class="link" style="margin-top:10px;text-decoration:underline;">Can't scan? Show the setup key instead</button>
+        <div class="secret-box" id="totp-secret" style="display:none;"></div>
+        <button type="button" class="btn" id="btn-totp-continue">I've added it — continue to login</button>
+      </div>
+
+      <!-- Normal login: password -->
+      <form id="step-password" style="display:none;">
+        <label for="username">Username</label>
+        <input id="username" autocomplete="username" required maxlength="100" />
+        <label for="password">Password</label>
+        <div class="pw-wrap"><input id="password" type="password" autocomplete="current-password" required maxlength="200" /><button type="button" id="pw-toggle" aria-label="Show password">Show</button></div>
+        <input type="text" id="website" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" />
+        <button type="submit" class="btn" id="btn-password">Continue</button>
+        <div class="links"><button type="button" class="link" id="show-forgot">Forgot password?</button></div>
+      </form>
+
+      <!-- Normal login: 2FA -->
+      <form id="step-totp" style="display:none;">
+        <label for="code">6-digit authenticator code</label>
+        <input id="code" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" required style="font-size:22px;letter-spacing:.5em;text-align:center;font-family:'Sora',sans-serif;" />
+        <p class="hint">Open Google Authenticator / Authy and enter the current code.</p>
+        <button type="submit" class="btn" id="btn-totp">Verify &amp; sign in</button>
+      </form>
+
+      <!-- Forgot password: request code -->
+      <form id="step-forgot-request" style="display:none;">
+        <label for="forgot-username">Username</label>
+        <input id="forgot-username" required maxlength="100" />
+        <button type="submit" class="btn" id="btn-forgot-request">Send reset code</button>
+        <div class="links"><button type="button" class="link" id="back-to-login-1">Back to login</button></div>
+      </form>
+
+      <!-- Forgot password: enter code + new password -->
+      <form id="step-forgot-reset" style="display:none;">
+        <p class="hint" style="margin-top:0;">If that username has a recovery email set, a 6-digit code was sent to it.</p>
+        <label for="reset-code">Reset code</label>
+        <input id="reset-code" inputmode="numeric" pattern="\d{6}" maxlength="6" required />
+        <label for="new-password">New password (min 10 characters)</label>
+        <input id="new-password" type="password" minlength="10" required autocomplete="new-password" />
+        <button type="submit" class="btn" id="btn-forgot-reset">Set new password</button>
+        <div class="links"><button type="button" class="link" id="back-to-login-2">Back to login</button></div>
+      </form>
+
+      <div class="err" id="err" role="alert"></div>
+      <div class="ok-msg" id="ok-msg" role="status"></div>
+      <div class="card-foot">
+        <a href="index.html" class="back">← Back to site</a>
+        <div>
+          <a href="privacy.html" class="back">Privacy Policy</a>
+          <a href="terms.html" class="back">Terms &amp; Conditions</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="view-dashboard">
+  <div class="shell">
+    <aside class="side">
+      <div class="logo">Ainsley<span>.</span></div>
+      <div class="side-tag">Admin console</div>
+      <nav id="tabs" aria-label="Sections">
+        <button data-tab="Projects" class="active"><svg class="i"><use href="#i-proj"/></svg>Projects</button>
+        <button data-tab="Designs"><svg class="i"><use href="#i-design"/></svg>Designs</button>
+        <button data-tab="Tools"><svg class="i"><use href="#i-tool"/></svg>Tools</button>
+        <button data-tab="Blog"><svg class="i"><use href="#i-blog"/></svg>Blog</button>
+        <button data-tab="Testimonials"><svg class="i"><use href="#i-chat"/></svg>Testimonials</button>
+        <button data-tab="Analytics"><svg class="i"><use href="#i-chart"/></svg>Analytics</button>
+        <button data-tab="Settings"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
+      </nav>
+      <div class="side-mini side-mini-wrap">
+        <button type="button" id="theme-toggle" class="icon-btn theme-icon" aria-label="Switch theme" aria-pressed="false"><svg class="i moon"><use href="#i-moon"/></svg><svg class="i sun"><use href="#i-sun"/></svg></button>
+      </div>
+      <div class="side-foot">
+        <select id="idle-timeout" title="Auto-logout after inactivity" aria-label="Auto-logout after inactivity">
+          <option value="5">Auto-logout: 5 min</option>
+          <option value="10">Auto-logout: 10 min</option>
+          <option value="30" selected>Auto-logout: 30 min</option>
+          <option value="60">Auto-logout: 1 hr</option>
+          <option value="120">Auto-logout: 2 hr</option>
+        </select>
+        <div class="row">
+          <button type="button" id="theme-toggle-2" class="icon-btn theme-icon" aria-label="Switch theme"><svg class="i moon"><use href="#i-moon"/></svg><svg class="i sun"><use href="#i-sun"/></svg></button>
+          <button id="logout" type="button"><svg class="i"><use href="#i-out"/></svg>Log out</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div>
+          <h1 id="tab-title">Projects</h1>
+          <p id="tab-sub">Manage what appears on your public site.</p>
+        </div>
+        <div class="top-actions">
+          <label class="search" id="search-wrap"><span class="sr">Search</span><svg class="i"><use href="#i-search"/></svg><input id="list-search" type="search" placeholder="Search…" autocomplete="off" /></label>
+          <button class="btn" id="add-btn" type="button"><svg class="i"><use href="#i-plus"/></svg>Add new</button>
+        </div>
+      </div>
+      <div id="stats"></div>
+      <div id="table-wrap"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+      <!-- mobile-only controls (the sidebar footer is hidden on small screens) -->
+      <div id="mobile-foot" class="top-actions" style="margin-top:28px;justify-content:space-between;">
+        <select id="idle-timeout-m" aria-label="Auto-logout after inactivity" style="width:auto;min-height:42px;">
+          <option value="5">Auto-logout: 5 min</option><option value="10">Auto-logout: 10 min</option><option value="30">Auto-logout: 30 min</option><option value="60">Auto-logout: 1 hr</option><option value="120">Auto-logout: 2 hr</option>
+        </select>
+        <button type="button" class="btn secondary" id="logout-m"><svg class="i"><use href="#i-out"/></svg>Log out</button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h3 id="modal-title">Add item</h3>
+    <form id="item-form"></form>
+    <div class="modal-actions">
+      <button class="btn secondary" type="button" id="cancel-btn">Cancel</button>
+      <button class="btn" type="submit" form="item-form" id="save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* =========================================================================
+   CONFIG + LOW-LEVEL API
+   The session token lives ONLY in this JS variable — never written to
+   localStorage, sessionStorage, or a cookie. A page refresh clears it on
+   purpose (you'll be asked to log in + 2FA again). This is a deliberate
+   trade-off: nothing durable on the client for an attacker (e.g. via XSS)
+   to read after the fact.
+   ========================================================================= */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKbUDLrkVJqw4D8FsZ9akzXvLfBvb1iounKKR8IyaDyOD5BY9nnkMdYJtyistbqN_oKg/exec";
+let token = null;
+
+async function api(action, payload = {}) {
+  const body = token ? { ...payload, token } : payload;
+  let data;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids CORS preflight on Apps Script
+      body: JSON.stringify({ action, payload: body })
+    });
+    data = await res.json();
+  } catch (err) {
+    // Network failure, unreachable host, or a non-JSON response (e.g. the
+    // backend URL is still the placeholder, or points at a 404 page) —
+    // never let this throw uncaught. Surface it as a normal error instead.
+    const notConfigured = APPS_SCRIPT_URL.indexOf("PASTE_YOUR") !== -1;
+    return {
+      ok: false,
+      code: "E_NETWORK",
+      error: notConfigured
+        ? "The admin backend isn't set up yet — APPS_SCRIPT_URL in admin.html still needs your deployed Apps Script URL."
+        : "Could not reach the server. Check your connection and try again."
+    };
+  }
+  if (!data.ok && data.code === "E_SESSION") { token = null; clearTimeout(idleTimer); showLoginView(); showError("Session expired — please log in again."); }
+  return data;
+}
+
+const $ = (id) => document.getElementById(id);
+function showError(msg){ $("err").textContent = msg || ""; $("ok-msg").textContent = ""; }
+function showOk(msg){ $("ok-msg").textContent = msg || ""; $("err").textContent = ""; }
+function busy(btn, on, label){
+  if (!btn) return;
+  if (on) { btn.dataset.l = btn.textContent; btn.disabled = true; btn.classList.add("loading"); if (label) btn.textContent = label; }
+  else { btn.disabled = false; btn.classList.remove("loading"); if (btn.dataset.l) { btn.textContent = btn.dataset.l; delete btn.dataset.l; } }
+}
+function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+/* =========================================================================
+   VIEW SWITCHING
+   ========================================================================= */
+function showLoginView(){
+  $("view-dashboard").style.display = "none";
+  $("view-login").style.display = "flex";
+}
+function showDashboardView(){
+  $("view-login").style.display = "none";
+  $("view-dashboard").style.display = "block";
+  window.scrollTo(0, 0);
+  loadTab("Projects");
+  startIdleTimer();
+  prefetchAll();
+}
+// After sign-in, quietly load every other collection in parallel so tab
+// switches are instant (instead of one network round-trip per tab click).
+function prefetchAll(){
+  ["Designs","Tools","Blog","Testimonials"].forEach(t => {
+    api("list", { collection: t }).then(r => { if (r.ok) { cache[t] = r.items; if (currentTab === t) renderTable(t, r.items); renderStats(); } });
+  });
+}
+
+/* =========================================================================
+   IDLE AUTO-LOGOUT
+   The chosen timeout is just a UI preference (not a secret), so it's fine
+   to remember it in localStorage across sessions — only the session token
+   itself stays out of any storage.
+   ========================================================================= */
+let idleTimer = null;
+function idleMinutes(){ return Number($("idle-timeout").value || 30); }
+function syncIdle(v){ $("idle-timeout").value = v; $("idle-timeout-m").value = v; }
+function resetIdleTimer(){
+  clearTimeout(idleTimer);
+  if (!token) return; // not logged in, nothing to time out
+  idleTimer = setTimeout(async () => {
+    await api("logout", {}).catch(()=>{});
+    token = null;
+    showLoginView();
+    init();
+    showError("Logged out after " + idleMinutes() + " minutes of inactivity.");
+  }, idleMinutes() * 60000);
+}
+function startIdleTimer(){
+  const saved = localStorage.getItem('admin_idle_minutes');
+  syncIdle(saved || $("idle-timeout").value);
+  resetIdleTimer();
+}
+["idle-timeout","idle-timeout-m"].forEach(id => $(id).addEventListener("change", (e) => {
+  syncIdle(e.target.value);
+  localStorage.setItem('admin_idle_minutes', e.target.value);
+  resetIdleTimer();
+}));
+['mousemove','keydown','click','scroll','touchstart'].forEach(evt =>
+  document.addEventListener(evt, () => { if (token) resetIdleTimer(); }, { passive: true })
+);
+
+const loginForms = ["step-create","step-totp-reveal","step-password","step-totp","step-forgot-request","step-forgot-reset"];
+function showLoginForm(id, title, subtitle){
+  loginForms.forEach(f => $(f).style.display = (f === id ? (id === "step-totp-reveal" ? "block" : "block") : "none"));
+  $("title").textContent = title;
+  $("subtitle").textContent = subtitle;
+  showError(""); showOk("");
+}
+
+/* =========================================================================
+   FIRST-RUN SETUP WIZARD
+   ========================================================================= */
+let loginTicket = null, resetTicket = null, pendingOtpauth = null;
+
+async function init(){
+  // Show the sign-in form immediately (no waiting on the network), then check in the
+  // background whether first-run setup is needed. This call also warms the backend.
+  showLoginForm("step-password", "Welcome back", "Sign in to manage the site.");
+  const r = await api("setupStatus");
+  if (r.ok && !r.hasAdmin) {
+    if (!$("username").value && !$("password").value && $("step-password").style.display !== "none")
+      showLoginForm("step-create", "Create admin account", "No admin account exists yet — set one up now.");
+  } else if (!r.ok && $("step-password").style.display !== "none") {
+    // backend unreachable or not configured yet — say exactly what's wrong rather than a silent dead end
+    showError(r.error || "Could not check account status.");
+  }
+}
+
+$("step-create").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if ($("create-website").value) return; // honeypot
+  const password = $("create-password").value;
+  const confirmPassword = $("create-password-confirm").value;
+  if (password !== confirmPassword) { showError("Passwords do not match."); return; }
+  const btn = $("btn-create"); busy(btn, true, "Creating account…");
+  try {
+    const r = await api("createAccount", {
+      username: $("create-username").value.trim(),
+      password, confirmPassword,
+      recoveryEmail: $("create-email").value.trim(),
+      website: $("create-website").value
+    });
+    if (r.ok) {
+      pendingOtpauth = r.otpauthUrl;
+      $("totp-secret").textContent = r.totpSecret;
+      showLoginForm("step-totp-reveal", "Set up 2FA", "");
+      renderTotpQr(r.otpauthUrl);
+    } else showError(r.error || "Could not create account.");
+  } catch { showError("Network error — please try again."); }
+  finally { busy(btn, false); }
+});
+
+$("btn-totp-continue").addEventListener("click", () => {
+  showLoginForm("step-password", "Welcome back", "Account ready — sign in below.");
+  showOk("2FA configured. Sign in to continue.");
+});
+
+$("btn-toggle-key").addEventListener("click", () => {
+  const box = $("totp-secret");
+  const showingKey = box.style.display !== "none";
+  box.style.display = showingKey ? "none" : "block";
+  $("totp-qr").style.display = showingKey ? "flex" : "none";
+  $("btn-toggle-key").textContent = showingKey ? "Can't scan? Show the setup key instead" : "Scan a QR code instead";
+});
+
+/* Loads the QR library only when actually needed (account creation is a
+   one-time event), and renders entirely in the browser — the 2FA secret
+   is never sent to any server or third party to generate this image. */
+let qrJsLoaded = false;
+function loadQrJs() {
+  return new Promise((resolve) => {
+    if (qrJsLoaded || window.QRCode) { qrJsLoaded = true; resolve(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+    s.onload = () => { qrJsLoaded = true; resolve(); };
+    s.onerror = () => resolve(); // fall back to the text key if the CDN is unreachable
+    document.head.appendChild(s);
+  });
+}
+async function renderTotpQr(otpauthUrl) {
+  const box = $("totp-qr");
+  await loadQrJs();
+  if (!window.QRCode) {
+    box.innerHTML = '<span style="color:#888;font-size:12px;text-align:center;">QR unavailable — use "Show the setup key instead" below.</span>';
+    return;
+  }
+  box.innerHTML = "";
+  new QRCode(box, { text: otpauthUrl, width: 176, height: 176, correctLevel: QRCode.CorrectLevel.M });
+}
+
+/* =========================================================================
+   LOGIN (password -> 2FA)
+   ========================================================================= */
+$("pw-toggle").addEventListener("click", () => { const p = $("password"), show = p.type === "password"; p.type = show ? "text" : "password"; $("pw-toggle").textContent = show ? "Hide" : "Show"; $("pw-toggle").setAttribute("aria-label", show ? "Hide password" : "Show password"); });
+$("show-forgot").addEventListener("click", () => showLoginForm("step-forgot-request", "Reset password", "Enter your username to receive a reset code."));
+$("back-to-login-1").addEventListener("click", () => showLoginForm("step-password", "Welcome back", "Sign in to manage the site."));
+$("back-to-login-2").addEventListener("click", () => showLoginForm("step-password", "Welcome back", "Sign in to manage the site."));
+
+$("step-password").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if ($("website").value) return; // honeypot
+  const btn = $("btn-password"); busy(btn, true, "Signing in…");
+  try {
+    const r = await api("login", { username: $("username").value.trim(), password: $("password").value });
+    if (r.ok && r.stage === "2fa") { loginTicket = r.ticket; showLoginForm("step-totp", "Two-factor code", "Enter your 2FA code to finish signing in."); $("code").focus(); }
+    else showError(r.error || "Invalid credentials.");
+  } catch { showError("Network error — please try again."); }
+  finally { busy(btn, false); }
+});
+
+$("step-totp").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("btn-totp"); busy(btn, true, "Verifying…");
+  try {
+    const r = await api("verify2fa", { ticket: loginTicket, code: $("code").value.trim() });
+    if (r.ok) { token = r.token; showDashboardView(); }
+    else showError(r.error || "Invalid code.");
+  } catch { showError("Network error — please try again."); }
+  finally { busy(btn, false); }
+});
+
+/* =========================================================================
+   FORGOT PASSWORD
+   ========================================================================= */
+$("step-forgot-request").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("btn-forgot-request"); busy(btn, true, "Sending code…");
+  try {
+    const r = await api("forgotPassword", { username: $("forgot-username").value.trim() });
+    if (r.ok) { resetTicket = r.ticket; showLoginForm("step-forgot-reset", "Reset password", "Check the recovery inbox for a code."); }
+    else showError(r.error || "Something went wrong.");
+  } catch { showError("Network error — please try again."); }
+  finally { busy(btn, false); }
+});
+
+$("step-forgot-reset").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("btn-forgot-reset"); busy(btn, true, "Updating password…");
+  try {
+    const r = await api("resetPassword", { ticket: resetTicket, code: $("reset-code").value.trim(), newPassword: $("new-password").value });
+    if (r.ok) { showLoginForm("step-password", "Welcome back", "Password updated — sign in below."); showOk("Password updated. You can sign in now."); }
+    else showError(r.error || "Invalid or expired code.");
+  } catch { showError("Network error — please try again."); }
+  finally { busy(btn, false); }
+});
+
+/* =========================================================================
+   DASHBOARD — CRUD + Analytics
+   ========================================================================= */
+let currentTab = "Projects";
+let cache = {}; // in-memory only, per tab — lets tab switches render instantly
+
+const FIELD_SPECS = {
+  Projects: [ {key:"title",label:"Title",type:"text"}, {key:"category",label:"Category (shown as a label on the card, e.g. Web App)",type:"text"}, {key:"desc",label:"Description",type:"textarea"}, {key:"tags",label:"Technologies (comma separated)",type:"text"}, {key:"url",label:"Live URL",type:"text"}, {key:"githubUrl",label:"GitHub URL",type:"text"}, {key:"status",label:"Badge",type:"select",options:["","new","upcoming"]}, {key:"upcomingDate",label:"Countdown target (if Upcoming)",type:"datetime-local"}, {key:"order",label:"Sort order",type:"number"}, {key:"image",label:"Image",type:"image"} ],
+  Designs: [ {key:"title",label:"Title",type:"text"}, {key:"category",label:"Category (shown as a label on the card)",type:"text"}, {key:"desc",label:"Description",type:"textarea"}, {key:"tags",label:"Tags (comma separated)",type:"text"}, {key:"url",label:"External link",type:"text"}, {key:"status",label:"Badge",type:"select",options:["","new","upcoming"]}, {key:"upcomingDate",label:"Countdown target (if Upcoming)",type:"datetime-local"}, {key:"order",label:"Sort order",type:"number"}, {key:"image",label:"Image",type:"image"} ],
+  Tools: [ {key:"name",label:"Name",type:"text"}, {key:"category",label:"Category (e.g. Design, Utility)",type:"text"}, {key:"desc",label:"Short description",type:"text"}, {key:"icon",label:"Icon: an emoji, or an https image URL",type:"text"}, {key:"url",label:"URL",type:"text"}, {key:"order",label:"Sort order",type:"number"} ],
+  Blog: [ {key:"title",label:"Title",type:"text"}, {key:"tag",label:"Type",type:"select",options:["Blog","Reel"]}, {key:"category",label:"Category",type:"text"}, {key:"excerpt",label:"Excerpt",type:"textarea"}, {key:"url",label:"URL",type:"text"}, {key:"date",label:"Date (e.g. 2026-10-02)",type:"text"}, {key:"readTime",label:"Reading time (e.g. 5 min)",type:"text"}, {key:"image",label:"Thumbnail image",type:"image"} ],
+  Testimonials: [ {key:"name",label:"Name",type:"text"}, {key:"role",label:"Designation / company (optional)",type:"text"}, {key:"rating",label:"Rating (1-5)",type:"number"}, {key:"feedback",label:"Feedback",type:"textarea"}, {key:"approved",label:"Show on site",type:"select",options:["TRUE","FALSE"]} ]
+};
+
+const TAB_SUB = {
+  Projects: "Product builds shown in the Projects carousel.", Designs: "Pieces shown in the Designs carousel.", Tools: "Tools and resources listed on your site.",
+  Blog: "Posts and reels shown in the Blog section.", Testimonials: "Review and publish visitor feedback.", Analytics: "Traffic and engagement at a glance.", Settings: "Appearance and personalisation of the public site."
+};
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => loadTab(b.dataset.tab)));
+async function doLogout(){ const t = token; token = null; clearTimeout(idleTimer); cache = {}; showLoginView(); init(); if (t) { try { await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "logout", payload: { token: t } }), keepalive: true }); } catch (e) {} } }
+$("logout").addEventListener("click", doLogout);
+$("logout-m").addEventListener("click", doLogout);
+["theme-toggle","theme-toggle-2"].forEach(id => $(id).addEventListener("click", () => window.PortfolioTheme && window.PortfolioTheme.toggle()));
+$("list-search").addEventListener("input", () => { if (cache[currentTab]) renderTable(currentTab, cache[currentTab]); });
+$("cancel-btn").addEventListener("click", () => $("modal-backdrop").style.display = "none");
+$("add-btn").addEventListener("click", openAdd);
+
+async function loadTab(tab){
+  currentTab = tab;
+  $("tab-title").textContent = tab;
+  $("tab-sub").textContent = TAB_SUB[tab] || "";
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  const isData = !(tab === "Analytics" || tab === "Settings");
+  $("add-btn").style.display = isData ? "inline-flex" : "none";
+  $("search-wrap").style.display = isData ? "block" : "none";
+  $("list-search").value = "";
+  document.querySelector("#tabs button.active").scrollIntoView && document.querySelector("#tabs button.active").scrollIntoView({ block: "nearest", inline: "center" });
+
+  if (tab === "Analytics") { renderAnalytics(true); return; }
+  if (tab === "Settings") { renderSettings(); return; }
+
+  // Stale-while-revalidate: show cached data instantly if we have it, then
+  // quietly refresh in the background — keeps tab switches feeling instant
+  // instead of re-fetching (and re-spinning) every single time.
+  if (cache[tab]) { renderTable(tab, cache[tab]); renderStats(); }
+  else { $("table-wrap").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>'; }
+
+  const r = await api("list", { collection: tab });
+  if (!r.ok) { if (!cache[tab]) $("table-wrap").innerHTML = `<div class="empty">${esc(r.error)}</div>`; return; }
+  cache[tab] = r.items;
+  if (currentTab === tab) { renderTable(tab, r.items); renderStats(); }
+}
+
+/* ---- Settings tab: Appearance & Personalization ----
+   Pick an accent + theme, preview it on a sample card (nothing is saved or shown
+   to visitors yet), then press Apply. The public site reads the saved values
+   from the existing publicSettings endpoint. */
+const FALLBACK_PRESETS = {
+  violet:{name:'Aurora Violet',accent:'#8581EF',accent2:'#63C8D6'}, ocean:{name:'Ocean Blue',accent:'#579CEB',accent2:'#63C8D6'},
+  mint:{name:'Mint Green',accent:'#50B99A',accent2:'#63C8D6'}, rose:{name:'Rose Pink',accent:'#E18BAF',accent2:'#63C8D6'},
+  peach:{name:'Sunset Peach',accent:'#E6A17D',accent2:'#63C8D6'}, cyan:{name:'Cyber Cyan',accent:'#49BFCB',accent2:'#8581EF'},
+  indigo:{name:'Soft Indigo',accent:'#7188DB',accent2:'#63C8D6'}, lavender:{name:'Lavender',accent:'#AA8BE8',accent2:'#63C8D6'}
+};
+function inkFor(hex){
+  const n = parseInt(hex.slice(1), 16);
+  const c = [n>>16&255, n>>8&255, n&255].map(v => { v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
+  const L = 0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2];
+  return 1.05/(L+0.05) >= (L+0.05)/0.058 ? '#ffffff' : '#14152a';
+}
+async function renderSettings(){
+  $("stats").innerHTML = "";
+  $("table-wrap").innerHTML = '<div class="skeleton"></div>';
+  const r = await api("publicSettings");
+  if (currentTab !== "Settings") return;
+  if (!r.ok) { $("table-wrap").innerHTML = `<div class="empty">${esc(r.error)}</div>`; return; }
+
+  const meta = r.presetMeta || FALLBACK_PRESETS;
+  const keys = (r.presets && r.presets.length) ? r.presets : Object.keys(meta);
+  const defaults = r.defaults || { accentPreset:'violet', themeMode:'system' };
+  const saved = { accentPreset: r.accentPreset, themeMode: r.themeMode || 'system' };
+  const pending = { accentPreset: saved.accentPreset, themeMode: saved.themeMode };
+  const MODES = [['light','Light'],['dark','Dark'],['system','System default']];
+
+  $("table-wrap").innerHTML = `
+    <div class="panel">
+      <p style="font-family:'Sora',sans-serif;font-size:17px;font-weight:600;margin:0 0 4px;">Appearance &amp; Personalization</p>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 18px;">Choose how your public portfolio looks. Pick a colour or theme to <b>preview</b> it below, then press <b>Apply</b> to publish it to every visitor.</p>
+
+      <p class="set-h">Accent colour</p>
+      <div id="swatches" class="swatches" role="radiogroup" aria-label="Accent colour"></div>
+      <p id="sel-name" class="hint" style="margin:10px 0 0;"></p>
+
+      <p class="set-h" style="margin-top:22px;">Theme</p>
+      <div id="modes" class="modes" role="radiogroup" aria-label="Theme"></div>
+      <p class="hint">“System default” follows each visitor’s device setting. Visitors can still flip light/dark for themselves with the toggle in the navigation.</p>
+
+      <p class="set-h" style="margin-top:22px;">Preview <span id="pending-flag" class="pending-flag" hidden>not applied yet</span></p>
+      <div id="pv" class="pv"></div>
+
+      <div class="set-actions">
+        <button class="btn" id="apply-btn" type="button">Apply</button>
+        <button class="btn secondary" id="reset-btn" type="button">Reset to Default</button>
+        <button class="btn secondary" id="discard-btn" type="button" hidden>Discard preview</button>
+      </div>
+    </div>`;
+
+  const sw = $("swatches"), modesEl = $("modes");
+  sw.innerHTML = keys.map(k => { const m = meta[k]; return `<button type="button" class="sw" role="radio" data-k="${esc(k)}" aria-label="${esc(m.name)} ${esc(m.accent)}" title="${esc(m.name)}"><span class="dot" style="background:linear-gradient(135deg,${esc(m.accent)},${esc(m.accent2)})"></span><span class="nm">${esc(m.name)}</span><span class="hx">${esc(m.accent)}</span><span class="tick" aria-hidden="true">✓</span></button>`; }).join('');
+  modesEl.innerHTML = MODES.map(([k,l]) => `<button type="button" class="mode" role="radio" data-m="${k}">${l}</button>`).join('');
+
+  function paintPreview(){
+    const m = meta[pending.accentPreset] || meta.violet || FALLBACK_PRESETS.violet;
+    const dark = pending.themeMode === 'dark' || (pending.themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const pv = $("pv");
+    pv.className = 'pv ' + (dark ? 'dark' : 'light');
+    pv.style.setProperty('--pa', m.accent); pv.style.setProperty('--pa2', m.accent2); pv.style.setProperty('--pink', inkFor(m.accent));
+    pv.innerHTML = `
+      <div class="pv-nav"><b>Ainsley<i>.</i></b><span class="pv-link">Home</span><span class="pv-link on">Projects</span><span class="pv-link">Contact</span><span class="pv-cta">Let's Talk</span></div>
+      <div class="pv-body">
+        <div class="pv-card"><div class="pv-img"></div><span class="pv-badge">New</span><h4>Sample project</h4><p>Buttons, links, badges and highlights all follow the accent.</p><a href="javascript:void 0" class="pv-a" tabindex="-1">View project →</a></div>
+        <div class="pv-side"><div class="pv-bar"></div><div class="pv-bar s"></div><span class="pv-btn">Primary button</span><span class="pv-btn ghost">Secondary</span></div>
+      </div>`;
+    sw.querySelectorAll('.sw').forEach(b => { const on = b.dataset.k === pending.accentPreset; b.setAttribute('aria-checked', on); b.classList.toggle('sel', on); b.tabIndex = on ? 0 : -1; });
+    modesEl.querySelectorAll('.mode').forEach(b => { const on = b.dataset.m === pending.themeMode; b.setAttribute('aria-checked', on); b.classList.toggle('sel', on); });
+    const dirty = pending.accentPreset !== saved.accentPreset || pending.themeMode !== saved.themeMode;
+    $("sel-name").innerHTML = `Selected: <b style="color:var(--text)">${esc(m.name)}</b> · ${esc(m.accent)}` + (pending.accentPreset === saved.accentPreset ? ' · <span style="color:var(--ok)">currently live</span>' : '');
+    $("pending-flag").hidden = !dirty; $("discard-btn").hidden = !dirty;
+    $("apply-btn").disabled = !dirty;
+  }
+  sw.addEventListener('click', e => { const b = e.target.closest('.sw'); if (!b) return; pending.accentPreset = b.dataset.k; paintPreview(); });
+  sw.addEventListener('keydown', e => {
+    if (!['ArrowRight','ArrowLeft','ArrowDown','ArrowUp'].includes(e.key)) return;
+    e.preventDefault();
+    const i = keys.indexOf(pending.accentPreset), d = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    pending.accentPreset = keys[(i + d + keys.length) % keys.length]; paintPreview(); sw.querySelector('.sel').focus();
+  });
+  modesEl.addEventListener('click', e => { const b = e.target.closest('.mode'); if (!b) return; pending.themeMode = b.dataset.m; paintPreview(); });
+  $("discard-btn").addEventListener('click', () => { pending.accentPreset = saved.accentPreset; pending.themeMode = saved.themeMode; paintPreview(); });
+
+  async function save(values, label){
+    const btns = [$("apply-btn"), $("reset-btn")]; btns.forEach(b => b.disabled = true);
+    const res = await api('updateSettings', values);
+    if (res.ok) {
+      saved.accentPreset = values.accentPreset; saved.themeMode = values.themeMode;
+      pending.accentPreset = values.accentPreset; pending.themeMode = values.themeMode;
+      const mm = meta[values.accentPreset];
+      if (window.PortfolioTheme && mm) window.PortfolioTheme.applySettings({ accentPreset: values.accentPreset, accent: mm.accent, accent2: mm.accent2, themeMode: values.themeMode });
+      showToast(label);
+    } else showToast(res.error || 'Could not save');
+    $("reset-btn").disabled = false; paintPreview();
+  }
+  $("apply-btn").addEventListener('click', () => save({ accentPreset: pending.accentPreset, themeMode: pending.themeMode }, 'Appearance applied to the live site'));
+  $("reset-btn").addEventListener('click', () => {
+    if (!confirm('Reset the portfolio to Aurora Violet with the System default theme? This updates the live site.')) return;
+    pending.accentPreset = defaults.accentPreset; pending.themeMode = defaults.themeMode; paintPreview();
+    save({ accentPreset: defaults.accentPreset, themeMode: defaults.themeMode }, 'Reset to defaults');
+  });
+  paintPreview();
+}
+
+const ICO = (n) => `<svg class="i"><use href="#i-${n}"/></svg>`;
+function renderTable(tab, items){
+  const q = ($("list-search").value || "").trim().toLowerCase();
+  if (!items.length) { $("table-wrap").innerHTML = '<div class="empty">Nothing here yet — click “Add new”.</div>'; return; }
+  const rows = q ? items.filter(it => Object.values(it).some(v => typeof v === "string" && v.toLowerCase().includes(q))) : items;
+  if (!rows.length) { $("table-wrap").innerHTML = '<div class="empty">No matches for “' + esc(q) + '”.</div>'; return; }
+  $("table-wrap").innerHTML = '<div class="list">' + rows.map((it, i) => {
+    const title = it.title || it.name || "Untitled";
+    const img = /^https:\/\//i.test(it.imageUrl || "") ? `<img src="${esc(it.imageUrl)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()" />` : "";
+    const thumb = `<div class="thumb">${img}${img ? "" : esc(String(title).trim().charAt(0).toUpperCase())}</div>`;
+    const sub = tab === "Testimonials" ? (it.feedback || "") : (it.desc || it.excerpt || it.category || it.url || "");
+    const meta = [];
+    if (it.status) meta.push(`<span class="badge ${esc(it.status)}">${esc(it.status)}</span>`);
+    if (tab === "Testimonials") {
+      meta.push(String(it.approved).toUpperCase() === "TRUE" ? '<span class="badge live">Live on site</span>' : '<span class="badge hidden">Hidden</span>');
+      if (it.rating) meta.push(`<span class="chip">★ ${esc(it.rating)}/5</span>`);
+      if (it.role) meta.push(`<span class="chip">${esc(it.role)}</span>`);
+    } else {
+      if (tab === "Blog" && it.tag) meta.push(`<span class="chip">${esc(it.tag)}</span>`);
+      if (it.category) meta.push(`<span class="chip">${esc(it.category)}</span>`);
+      if (it.order !== undefined && it.order !== "") meta.push(`<span class="chip">#${esc(it.order)}</span>`);
+    }
+    const id = esc(it.id);
+    return `<div class="row-item" style="animation-delay:${Math.min(i, 8) * 35}ms">
+      ${thumb}
+      <div class="row-main"><div class="row-title">${esc(title)}</div>${sub ? `<div class="row-sub">${esc(sub)}</div>` : ""}<div class="row-meta">${meta.join("")}</div></div>
+      <div class="row-actions"><button type="button" onclick="openEdit('${id}')" aria-label="Edit ${esc(title)}">${ICO("edit")}<span class="lbl">Edit</span></button><button type="button" class="del" onclick="removeItem('${id}')" aria-label="Delete ${esc(title)}">${ICO("trash")}<span class="lbl">Delete</span></button></div>
+    </div>`;
+  }).join("") + "</div>";
+}
+
+const statCard = (icon, num, lbl, i) => `<div class="stat" style="animation-delay:${i * 50}ms"><div class="ico">${ICO(icon)}</div><div><div class="num">${num}</div><div class="lbl">${lbl}</div></div></div>`;
+function renderStats(){
+  if (currentTab === "Analytics" || currentTab === "Settings") return;
+  const testimonials = cache.Testimonials || [];
+  const projects = cache.Projects || [];
+  const approved = testimonials.filter(t => String(t.approved).toUpperCase() === "TRUE");
+  const ld = (c) => cache[c] ? cache[c].length : "…";
+  $("stats").innerHTML =
+    statCard("chat", cache.Testimonials ? testimonials.length : "…", "Total feedback", 0) +
+    statCard("eye", cache.Testimonials ? approved.length : "…", "Published testimonials", 1) +
+    statCard("proj", ld("Projects"), "Projects listed", 2) +
+    statCard("star", cache.Projects ? projects.filter(p => p.status === "new").length : "…", "Marked “New”", 3);
+}
+
+/* ---- Analytics tab (dependency-free inline SVG chart: nothing extra to download) ---- */
+function lineChart(labels, counts){
+  const W = 640, H = 230, L = 34, R = 12, T = 14, B = 28;
+  const max = Math.max(1, ...counts);
+  const nice = max <= 4 ? max : Math.ceil(max / 4) * 4;
+  const n = counts.length, x = (i) => L + (n < 2 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1)), y = (v) => T + (H - T - B) * (1 - v / nice);
+  const ticks = [0, .25, .5, .75, 1].map(f => Math.round(nice * f)).filter((v, i, a) => a.indexOf(v) === i);
+  const pts = counts.map((v, i) => [x(i), y(v)]);
+  const path = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const area = pts.length ? path + ` L${pts[n - 1][0].toFixed(1)} ${H - B} L${pts[0][0].toFixed(1)} ${H - B} Z` : "";
+  const every = Math.ceil(n / 7);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart of page views per day">
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".28"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+    ${ticks.map(v => `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join("")}
+    ${area ? `<path d="${area}" fill="url(#ag)"/>` : ""}
+    <path class="line" d="${path}"/>
+    ${pts.map((p, i) => `<circle class="dot" cx="${p[0]}" cy="${p[1]}" r="4"><title>${esc(labels[i])}: ${counts[i]}</title></circle>`).join("")}
+    ${labels.map((l, i) => (i % every === 0 || i === n - 1) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(l)}</text>` : "").join("")}
+  </svg>`;
+}
+function barList(rows){
+  const max = Math.max(1, ...rows.map(r => r.count));
+  return '<div class="bars">' + rows.map(r => `<div class="bar-row"><span class="nm">${esc(r.name)}</span><span class="ct">${r.count}</span><div class="track"><div class="fill" style="width:${Math.max(3, r.count / max * 100)}%"></div></div></div>`).join("") + "</div>";
+}
+
+async function renderAnalytics(showSkeleton){
+  $("stats").innerHTML = "";
+  if (showSkeleton) $("table-wrap").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+  const [r, cfg] = await Promise.all([ api("analytics"), api("configCheck") ]);
+  if (currentTab !== "Analytics") return;
+  if (!r.ok) { $("table-wrap").innerHTML = `<div class="empty">${esc(r.error)}</div>`; return; }
+
+  const mins = Math.floor(r.avgDurationSeconds / 60), secs = r.avgDurationSeconds % 60;
+  $("stats").innerHTML =
+    statCard("eye", r.totalPageViews, "Total page views", 0) + statCard("chat", r.uniqueVisitors, "Unique visitors", 1) +
+    statCard("chart", mins + "m " + secs + "s", "Avg. time on site", 2) + statCard("mail", r.totalContacts, "Enquiries received", 3);
+
+  const topPagesHtml = r.topPages.length ? barList(r.topPages.map(p => ({ name: p.page || "/", count: p.count }))) : '<p class="hint">No page-view data yet.</p>';
+  const sectionHtml = (r.sectionViews && r.sectionViews.length)
+    ? `<div class="panel"><h3>Homepage section engagement</h3>${barList(r.sectionViews.map(s => ({ name: s.section, count: s.count })))}</div>` : "";
+  const cfgRow = (ok, label) => `<div class="cfg"><span style="color:${ok ? "var(--ok)" : "var(--danger)"};font-weight:700;">${ok ? "✓" : "✕"}</span><span style="color:${ok ? "var(--text)" : "var(--danger)"};">${label}</span></div>`;
+  const configHtml = cfg.ok ? `<div class="panel"><h3>System configuration</h3>
+      ${cfgRow(cfg.contactEmailConfigured, cfg.contactEmailConfigured ? "Contact email configured — messages are being emailed to you" : "Contact email NOT set — messages are saved but not emailed (set CONTACT_EMAIL in Script Properties)")}
+      ${cfgRow(cfg.driveFolderConfigured, cfg.driveFolderConfigured ? "Image uploads configured" : "Drive folder NOT set — image uploads will fail (set DRIVE_FOLDER_ID)")}</div>` : "";
+  const secHtml = (r.recentSecurity && r.recentSecurity.length) ? `<div class="panel" style="margin-top:16px;"><h3>Recent security activity</h3>
+      <div style="overflow-x:auto"><table class="sec-table"><tbody>
+        ${r.recentSecurity.map(e => `<tr><td style="color:var(--muted);white-space:nowrap;">${esc(new Date(e.timestamp).toLocaleString())}</td><td>${esc(e.actor)}</td><td>${esc(e.action)}</td></tr>`).join("")}
+      </tbody></table></div></div>` : "";
+
+  $("table-wrap").innerHTML = `
+    <div class="panel"><h3>Page views — last 14 days</h3>${lineChart(r.pageViewsByDay.labels, r.pageViewsByDay.counts)}</div>
+    <div class="grid2"><div class="panel"><h3>Most-visited pages</h3>${topPagesHtml}</div>${sectionHtml || configHtml}</div>
+    ${sectionHtml ? `<div class="grid2">${configHtml}</div>` : ""}
+    ${secHtml}`;
+}
+
+/* ---- Add / Edit modal ---- */
+let editingId = null;
+function buildForm(tab, item = {}){
+  const spec = FIELD_SPECS[tab];
+  const form = $("item-form");
+  form.innerHTML = "";
+  spec.forEach(f => {
+    const wrap = document.createElement("div");
+    let html;
+    if (f.type === "textarea") html = `<textarea name="${f.key}" rows="3">${esc(item[f.key])}</textarea>`;
+    else if (f.type === "select") html = `<select name="${f.key}">${f.options.map(o => `<option value="${o}" ${item[f.key]===o?"selected":""}>${o || "None"}</option>`).join("")}</select>`;
+    else if (f.type === "image") html = (/^https:\/\//i.test(item.imageUrl || "") ? `<div class="cur-img"><img src="${esc(item.imageUrl)}" alt="Current image" /><span>Current image. Choose a file only if you want to replace it.</span></div>` : "") + `<input type="file" name="${f.key}" accept="image/png,image/jpeg,image/webp,image/gif" />`;
+    else html = `<input type="${f.type}" name="${f.key}" value="${esc(item[f.key])}" />`;
+    wrap.innerHTML = `<label>${esc(f.label)}</label>${html}`;
+    form.appendChild(wrap);
+
+    // Quick-pick shortcuts for the countdown field, instead of hand-picking
+    // a date/time — sets the field to "now + duration".
+    if (f.key === "upcomingDate") {
+      const picks = document.createElement("div");
+      picks.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;";
+      [["30 min",30*60000],["1 hr",3600000],["1 day",86400000],["2 days",172800000]].forEach(([label, ms]) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = label;
+        b.style.cssText = "font-size:11px;padding:5px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);";
+        b.addEventListener("click", () => {
+          const target = new Date(Date.now() + ms);
+          target.setSeconds(0, 0);
+          // datetime-local expects local wall-clock time, not UTC — build it
+          // from local components so the picker shows the right moment.
+          const pad = n => String(n).padStart(2, "0");
+          const local = `${target.getFullYear()}-${pad(target.getMonth()+1)}-${pad(target.getDate())}T${pad(target.getHours())}:${pad(target.getMinutes())}`;
+          wrap.querySelector(`[name="${f.key}"]`).value = local;
+        });
+        picks.appendChild(b);
+      });
+      wrap.appendChild(picks);
+    }
+  });
+}
+function openAdd(){
+  editingId = null;
+  $("modal-title").textContent = "Add " + currentTab.slice(0, -1);
+  buildForm(currentTab, {});
+  $("modal-backdrop").style.display = "flex";
+}
+window.openEdit = function(id){
+  const item = (cache[currentTab] || []).find(i => i.id === id);
+  if (!item) return;
+  editingId = id;
+  $("modal-title").textContent = "Edit " + currentTab.slice(0, -1);
+  buildForm(currentTab, item);
+  $("modal-backdrop").style.display = "flex";
+};
+window.removeItem = async function(id){
+  if (!confirm("Delete this item? This can't be undone.")) return;
+  const r = await api("delete", { collection: currentTab, id });
+  if (r.ok) { showToast("Deleted"); delete cache[currentTab]; loadTab(currentTab); }
+  else showToast(r.error || "Delete failed");
+};
+
+$("item-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const item = {}; let fileInput = null;
+  for (const [k, v] of fd.entries()) { if (v instanceof File) { if (v.size > 0) fileInput = v; } else item[k] = v; }
+
+  if (fileInput) {
+    if (fileInput.size > 15 * 1024 * 1024) { showToast("Image must be under 15MB"); return; }
+    showToast("Compressing image…");
+    const compressed = await compressImage(fileInput).catch(() => fileInput); // fall back to original on any error
+    const base64 = await fileToBase64(compressed);
+    const up = await api("uploadImage", { filename: fileInput.name, mimeType: compressed.type, base64 });
+    if (!up.ok) { showToast(up.error || "Upload failed"); return; }
+    item.imageUrl = up.url;
+  }
+
+  const r = editingId ? await api("update", { collection: currentTab, id: editingId, item }) : await api("create", { collection: currentTab, item });
+  if (r.ok) { showToast("Saved"); $("modal-backdrop").style.display = "none"; delete cache[currentTab]; loadTab(currentTab); }
+  else showToast(r.error || "Save failed");
+});
+
+// Resizes to a sane max dimension and re-encodes as JPEG at 82% quality —
+// keeps uploads (and the server's 5MB cap) comfortable and makes the live
+// site noticeably faster to load, without a visible quality hit for web use.
+function compressImage(file){
+  return new Promise((resolve, reject) => {
+    if (file.type === 'image/gif') { resolve(file); return; } // don't break animated GIFs
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const maxDim = 1600;
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale); height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        if (!blob) { reject(new Error('compress failed')); return; }
+        resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }));
+      }, 'image/jpeg', 0.82);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Keep this admin in step with the saved appearance (accent colour + theme).
+(function(){ try { window.PortfolioTheme.fetchSettings(APPS_SCRIPT_URL); } catch (e) {} })();
+init();
+</script>
+</body>
+</html>
