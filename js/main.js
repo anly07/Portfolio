@@ -6,7 +6,7 @@
 'use strict';
 
 /* ---------- Backend config (unchanged contract) ---------- */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJbNdIc8w5P1skSUZcNVHD_pKTWEKsAodd1KFjsSLpjByS_dSw96_OIhgkc_8upRixDg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx86NXsmcKfIGfKLPJezZtiNr8WDK8kkdtTVtbflx19dru_MvL1H6syArGU6bBrlTs8TA/exec";
 
 function apiCall(action, payload = {}) {
   return fetch(APPS_SCRIPT_URL, {
@@ -87,14 +87,23 @@ const ICON = {
   bad: '<svg viewBox="0 0 24 24" fill="none" stroke="#E5566D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>'
 };
 
-/* Drive thumbnails take ?sz=w1600 — request right-sized variants instead of always the biggest one. */
+/* Google Drive images. New uploads are stored as https://lh3.googleusercontent.com/d/<id>=w1600.
+   Older uploads used drive.google.com/thumbnail?id=… — both forms are normalised to the lh3 CDN URL
+   (reliable in <img>), at a width that fits the layout. The legacy thumbnail URL stays as a fallback. */
+function driveId(url) {
+  let m = /^https:\/\/lh3\.googleusercontent\.com\/d\/([\w-]+)/.exec(url);
+  if (!m) m = /^https:\/\/drive\.google\.com\/(?:thumbnail|uc)\?(?:[^#]*&)?id=([\w-]+)/.exec(url);
+  if (!m) m = /^https:\/\/drive\.google\.com\/file\/d\/([\w-]+)/.exec(url);
+  return m ? m[1] : '';
+}
+function driveSrc(id, w) { return `https://lh3.googleusercontent.com/d/${id}=w${w}`; }
 function imgAttrs(url, sizes) {
   url = safeUrl(url);
   if (!url) return '';
-  const m = /^(https:\/\/drive\.google\.com\/thumbnail\?[^#]*?)sz=w\d+/.exec(url);
-  if (m) {
-    const set = [480, 800, 1200, 1600].map(w => `${url.replace(/sz=w\d+/, 'sz=w' + w)} ${w}w`).join(', ');
-    return `src="${esc(url.replace(/sz=w\d+/, 'sz=w800'))}" srcset="${esc(set)}" sizes="${sizes}"`;
+  const id = driveId(url);
+  if (id) {
+    const set = [480, 800, 1200, 1600].map(w => `${driveSrc(id, w)} ${w}w`).join(', ');
+    return `src="${esc(driveSrc(id, 800))}" srcset="${esc(set)}" sizes="${sizes}" data-alt="${esc('https://drive.google.com/thumbnail?id=' + id + '&sz=w1000')}"`;
   }
   return `src="${esc(url)}"`;
 }
@@ -105,7 +114,7 @@ function mediaHtml(item, i, sizes, extraClass, glyph) {
   const label = item.title || item.name || '';
   const a = imgAttrs(item.imageUrl, sizes);
   const inner = a
-    ? `<img ${a} alt="${esc(label)} preview" loading="lazy" decoding="async" width="800" height="500" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cover v${i % 4}'}))" />`
+    ? `<img ${a} alt="${esc(label)} preview" loading="lazy" decoding="async" width="800" height="500" onerror="if(this.dataset.alt&&!this.dataset.t){this.dataset.t=1;this.removeAttribute('srcset');this.src=this.dataset.alt}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'cover v${i % 4}'}))}" />`
     : coverHtml(i, label, glyph);
   return `<div class="media ${extraClass || ''}">${inner}</div>`;
 }
@@ -388,7 +397,7 @@ const lb = $('lightbox');
 function lbRender() {
   const d = lbList[lbIndex]; if (!d) return;
   const a = imgAttrs(d.imageUrl, '100vw');
-  $('lb-stage').innerHTML = a ? `<img ${a} alt="${esc(d.title)}" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cover v0'}))" />` : coverHtml(lbIndex, d.title);
+  $('lb-stage').innerHTML = a ? `<img ${a} alt="${esc(d.title)}" decoding="async" onerror="if(this.dataset.alt&&!this.dataset.t){this.dataset.t=1;this.removeAttribute('srcset');this.src=this.dataset.alt}else{this.replaceWith(Object.assign(document.createElement('div'),{className:'cover v0'}))}" />` : coverHtml(lbIndex, d.title);
   if (a) { const big = imgAttrs((d.imageUrl || '').replace(/sz=w\d+/, 'sz=w1600'), '100vw'); const im = $('lb-stage').firstChild; if (big && /srcset/.test(big)) im.setAttribute('sizes', '(min-width:1100px) 1080px, 100vw'); }
   $('lb-title').textContent = d.title || '';
   $('lb-desc').textContent = d.desc || '';
@@ -453,7 +462,7 @@ function toolTile(t, i) {
 }
 
 /* ----- Blog ----- */
-let posts = [], blogShown = 7;
+let posts = [], blogCar;
 function blogCard(b, i, feature) {
   const tag = b.tag || 'Blog';
   const url = safeUrl(b.url);
@@ -464,6 +473,7 @@ function blogCard(b, i, feature) {
       <div class="bmeta"><span class="tag">${esc(tag)}</span>${b.category ? `<span class="tag muted">${esc(b.category)}</span>` : ''}${when ? `<time>${esc(when)}</time>` : ''}${b.readTime ? `<span>${esc(b.readTime)} read</span>` : ''}</div>
       <h3>${esc(b.title)}</h3>${b.excerpt ? `<p>${esc(b.excerpt)}</p>` : ''}
       ${url ? `<span class="read-more">${tag === 'Reel' ? 'Watch reel' : 'Read more'} ${ICON.right}</span>` : ''}
+      ${b.keyTakeaway ? `<div class="bfoot"><span class="bfoot-label">Key takeaway</span><p>${esc(b.keyTakeaway)}</p></div>` : ''}
     </div>`;
   const cls = `card bcard reveal${feature ? ' feature' : ''}`;
   return url
@@ -471,14 +481,13 @@ function blogCard(b, i, feature) {
     : `<article class="${cls}" style="--i:${i % 3}">${body}</article>`;
 }
 function renderBlog() {
-  const grid = $('blog-grid'), more = $('blog-more');
-  if (!posts.length) { grid.innerHTML = '<p class="empty">New posts coming soon.</p>'; more.hidden = true; return; }
-  grid.innerHTML = posts.slice(0, blogShown).map((b, i) => blogCard(b, i, i === 0)).join('');
-  more.hidden = posts.length <= blogShown;
+  const grid = $('blog-grid');
+  if (!posts.length) { grid.innerHTML = '<p class="empty">New posts coming soon.</p>'; $('b-ctl').hidden = true; return; }
+  grid.innerHTML = posts.map((b, i) => blogCard(b, i, true)).join('');
   observeReveals(grid);
+  if (!blogCar) blogCar = makeCarousel(grid, 'b');
+  blogCar.reset();
 }
-$('blog-more').addEventListener('click', () => { blogShown += 6; renderBlog(); });
-
 /* Fetch admin-managed content and render every section. If a fetch fails, each
    section fails gracefully with a quiet empty state instead of breaking the page. */
 /* FAQ: the page ships with a crawlable default set (HTML + FAQPage JSON-LD). When the admin has
@@ -625,7 +634,7 @@ $('contact-form').addEventListener('submit', async (e) => {
   try {
     const r = await apiCall('contact', { name, email, subject: f.get('subject'), message, website: f.get('website'), anonId: getAnonId(), loadedAt: _pageEnteredAt });
     if (r.ok) { setStatus(status, 'ok', "Message sent. Thanks! I'll get back to you soon."); toast('Message sent'); form.reset(); }
-    else setStatus(status, 'bad', (r.error || 'Something went wrong.') + ' Please try again');
+    else setStatus(status, 'bad', (r.error || 'Something went wrong.') + ' Please try again, or email hello@ainsleyc.dev.');
   } catch (err) {
     setStatus(status, 'bad', "Couldn't reach the server. Check your connection and try again.");
   } finally { setLoading(btn, false, 'Send message'); }

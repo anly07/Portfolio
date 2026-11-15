@@ -35,7 +35,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 @media (min-width: 640px) { .wrap { padding-inline: 32px; } }
 @media (min-width: 1700px) { .wrap { max-width: 1320px; } }
 
-.section { position: relative; padding-block: clamp(72px, 11vw, 136px); }
+.section { position: relative; padding-block: clamp(72px, 5vw, 136px); }
 .section.alt { background: var(--surface-2); }
 .section-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 32px; margin-bottom: clamp(28px, 5vw, 52px); }
 .section-head h2 { font-size: clamp(1.85rem, 1.2rem + 3vw, 3.2rem); line-height: 1.08; font-weight: 600; max-width: 18ch; }
@@ -506,3 +506,12 @@ html.dark .field .err { color: #FF8CA0; }
 .faq-item[open] .faq-ico::after { transform: rotate(0); }
 .faq-a { padding: 0 22px 22px; }
 .faq-a p { margin: 0; color: var(--text-soft); line-height: 1.7; font-size: .97rem; }
+
+/* blog carousel: one post per slide */
+.car-track.one > * { flex-basis: 100%; }
+.car-track .bcard { height: auto; }
+
+/* blog key-takeaway footer */
+.bfoot { margin-top: 1.2rem; padding: .95rem 1.1rem; border-radius: var(--radius-sm); background: var(--accent-tint); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); }
+.bfoot-label { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); margin-bottom: .3rem; }
+.bcard .bfoot p { margin: 0; font-size: .92rem; line-height: 1.55; color: var(--text); }

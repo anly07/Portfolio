@@ -92,6 +92,7 @@ function sheet_(name) {
     catch (e) { sh = ss_().getSheetByName(name); }
   }
   if (!sh) throw new AppError_('E_NO_SHEET', 'Missing sheet tab: ' + name);
+  ensureColumns_(name, sh);
   MEMO_.sheets[name] = sh;
   return sh;
 }
@@ -114,7 +115,7 @@ function setupSheets_() {
     Projects: ['id', 'title', 'desc', 'tags', 'imageUrl', 'url', 'status', 'order', 'updatedAt', 'upcomingDate', 'category', 'githubUrl'],
     Designs: ['id', 'title', 'desc', 'tags', 'imageUrl', 'url', 'status', 'order', 'updatedAt', 'upcomingDate', 'category'],
     Tools: ['id', 'name', 'icon', 'url', 'order', 'updatedAt', 'desc', 'category'],
-    Blog: ['id', 'title', 'excerpt', 'url', 'date', 'updatedAt', 'tag', 'imageUrl', 'readTime', 'category'],
+    Blog: ['id', 'title', 'excerpt', 'url', 'date', 'updatedAt', 'tag', 'imageUrl', 'readTime', 'category', 'keyTakeaway'],
     Testimonials: ['id', 'name', 'rating', 'feedback', 'approved', 'createdAt', 'role'],
     FAQs: ['id', 'question', 'answer', 'order', 'updatedAt'],
     Settings: ['key', 'value'],
@@ -136,14 +137,32 @@ function setupSheets_() {
 // header row. It never touches existing rows, never reorders or renames an
 // existing column, and is safe to run any number of times. Until a column
 // exists the backend simply ignores that field, so nothing breaks if you skip it.
+var COLUMN_UPGRADES_ = {
+  Projects: ['category', 'githubUrl'],
+  Designs: ['category'],
+  Tools: ['category'],
+  Blog: ['imageUrl', 'readTime', 'category', 'keyTakeaway'],
+  Testimonials: ['role']
+};
+
+// Adds any missing columns to ONE tab. Called automatically the first time a tab is used
+// (then remembered for a few hours), so an older spreadsheet never silently drops new fields
+// such as a blog's image or category just because upgradeSheets_ was never run by hand.
+function ensureColumns_(name, sh) {
+  var wanted = COLUMN_UPGRADES_[name];
+  if (!wanted) return;
+  var cache = CacheService.getScriptCache();
+  if (cache.get('cols_ok_' + name)) return;
+  var lastCol = Math.max(sh.getLastColumn(), 1);
+  var headers = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
+  wanted.forEach(function (col) {
+    if (headers.indexOf(col) === -1) { sh.getRange(1, headers.length + 1).setValue(col); headers.push(col); }
+  });
+  cache.put('cols_ok_' + name, '1', 6 * 3600);
+}
+
 function upgradeSheets_() {
-  var wanted = {
-    Projects: ['category', 'githubUrl'],
-    Designs: ['category'],
-    Tools: ['category'],
-    Blog: ['imageUrl', 'readTime', 'category'],
-    Testimonials: ['role']
-  };
+  var wanted = COLUMN_UPGRADES_;
   var ss = ss_();
   Object.keys(wanted).forEach(function (name) {
     var sh = ss.getSheetByName(name);
@@ -769,7 +788,7 @@ function validateItem_(collection, item) {
     Projects: { title: 200, desc: 2000, tags: 300, imageUrl: 500, url: 500, status: 20, order: 0, upcomingDate: 40, category: 60, githubUrl: 500 },
     Designs: { title: 200, desc: 2000, tags: 300, imageUrl: 500, url: 500, status: 20, order: 0, upcomingDate: 40, category: 60 },
     Tools: { name: 100, icon: 500, url: 500, order: 0, desc: 200, category: 60 },
-    Blog: { title: 200, excerpt: 2000, url: 500, date: 40, tag: 20, imageUrl: 500, readTime: 20, category: 60 },
+    Blog: { title: 200, excerpt: 2000, url: 500, date: 40, tag: 20, imageUrl: 500, readTime: 20, category: 60, keyTakeaway: 600 },
     Testimonials: { name: 100, rating: 0, feedback: 2000, approved: 0, role: 100 },
     FAQs: { question: 200, answer: 2000, order: 0 }
   };

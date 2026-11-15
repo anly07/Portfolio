@@ -441,7 +441,7 @@
 </div>
 
 <div class="toast" id="toast" role="status"></div>
-<div id="stale" role="alert" hidden><b>Your Apps Script backend is out of date.</b> Open Apps Script → Deploy → Manage deployments → ✎ Edit → Version: <b>New version</b> → Deploy. Until then sign-in stays slow and newer features (FAQs, colour presets) won't work.</div>
+<div id="stale" role="alert" hidden><b>Your Apps Script backend is out of date.</b> Check that <code>APPS_SCRIPT_URL</code> (admin.html and js/main.js) is the URL of your newest deployment, then open Apps Script → Deploy → Manage deployments → ✎ Edit → Version: <b>New version</b> → Deploy. Until then sign-in stays slow and newer features (FAQs, colour presets) won't work.</div>
 
 <script>
 /* =========================================================================
@@ -452,11 +452,11 @@
    trade-off: nothing durable on the client for an attacker (e.g. via XSS)
    to read after the fact.
    ========================================================================= */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJbNdIc8w5P1skSUZcNVHD_pKTWEKsAodd1KFjsSLpjByS_dSw96_OIhgkc_8upRixDg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx86NXsmcKfIGfKLPJezZtiNr8WDK8kkdtTVtbflx19dru_MvL1H6syArGU6bBrlTs8TA/exec";
 let token = null;
 
 function noteTiming(d, total){
-  const stale = !(d && d.v);
+  const stale = !!(d && d.ok && !d.v); // an error reply without a version is not proof the backend is old
   $("stale").hidden = !stale;
   const txt = stale ? "" : `Backend v${d.v} · server ${(d.ms / 1000).toFixed(1)}s · total ${(total / 1000).toFixed(1)}s`;
   ["diag", "diag-d"].forEach(id => { const el = $(id); if (el) el.textContent = txt; });
@@ -505,7 +505,8 @@ function busy(btn, on, label){
     btn.disabled = false; btn.classList.remove("loading"); if (btn.dataset.l) { btn.textContent = btn.dataset.l; delete btn.dataset.l; }
   }
 }
-function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
+let toastTimer;
+function showToast(msg, ms){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"), ms || 2200); }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
 /* =========================================================================
@@ -721,7 +722,7 @@ const FIELD_SPECS = {
   Projects: [ {key:"title",label:"Title",type:"text"}, {key:"category",label:"Category (shown as a label on the card, e.g. Web App)",type:"text"}, {key:"desc",label:"Description",type:"textarea"}, {key:"tags",label:"Technologies (comma separated)",type:"text"}, {key:"url",label:"Live URL",type:"text"}, {key:"githubUrl",label:"GitHub URL",type:"text"}, {key:"status",label:"Badge",type:"select",options:["","new","upcoming"]}, {key:"upcomingDate",label:"Countdown target (if Upcoming)",type:"datetime-local"}, {key:"order",label:"Sort order",type:"number"}, {key:"image",label:"Image",type:"image"} ],
   Designs: [ {key:"title",label:"Title",type:"text"}, {key:"category",label:"Category (shown as a label on the card)",type:"text"}, {key:"desc",label:"Description",type:"textarea"}, {key:"tags",label:"Tags (comma separated)",type:"text"}, {key:"url",label:"External link",type:"text"}, {key:"status",label:"Badge",type:"select",options:["","new","upcoming"]}, {key:"upcomingDate",label:"Countdown target (if Upcoming)",type:"datetime-local"}, {key:"order",label:"Sort order",type:"number"}, {key:"image",label:"Image",type:"image"} ],
   Tools: [ {key:"name",label:"Name",type:"text"}, {key:"category",label:"Category (e.g. Design, Utility)",type:"text"}, {key:"desc",label:"Short description",type:"text"}, {key:"icon",label:"Icon: an emoji, or an https image URL",type:"text"}, {key:"url",label:"URL",type:"text"}, {key:"order",label:"Sort order",type:"number"} ],
-  Blog: [ {key:"title",label:"Title",type:"text"}, {key:"tag",label:"Type",type:"select",options:["Blog","Reel"]}, {key:"category",label:"Category",type:"text"}, {key:"excerpt",label:"Excerpt",type:"textarea"}, {key:"url",label:"URL",type:"text"}, {key:"date",label:"Date (e.g. 2026-10-02)",type:"text"}, {key:"readTime",label:"Reading time (e.g. 5 min)",type:"text"}, {key:"image",label:"Thumbnail image",type:"image"} ],
+  Blog: [ {key:"title",label:"Title",type:"text"}, {key:"tag",label:"Type",type:"select",options:["Blog","Reel"]}, {key:"category",label:"Category",type:"text"}, {key:"excerpt",label:"Excerpt",type:"textarea"}, {key:"url",label:"URL",type:"text"}, {key:"date",label:"Date (e.g. 2026-10-02)",type:"text"}, {key:"readTime",label:"Reading time (e.g. 5 min)",type:"text"}, {key:"keyTakeaway",label:"Key takeaway (shown in the footer of the post card)",type:"textarea"}, {key:"image",label:"Thumbnail image",type:"image"} ],
   FAQs: [ {key:"question",label:"Question",type:"text"}, {key:"answer",label:"Answer (plain text, up to ~2000 characters)",type:"textarea"}, {key:"order",label:"Sort order (1 = first)",type:"number"} ],
   Testimonials: [ {key:"name",label:"Name",type:"text"}, {key:"role",label:"Designation / company (optional)",type:"text"}, {key:"rating",label:"Rating (1-5)",type:"number"}, {key:"feedback",label:"Feedback",type:"textarea"}, {key:"approved",label:"Show on site",type:"select",options:["TRUE","FALSE"]} ]
 };
@@ -876,6 +877,13 @@ async function renderSettings(){
   paintPreview();
 }
 
+// Same Drive-URL normalisation as the public site (lh3 CDN), so previews match what visitors see.
+function driveThumb(url, w){
+  url = String(url || "");
+  const m = /^https:\/\/lh3\.googleusercontent\.com\/d\/([\w-]+)/.exec(url) || /^https:\/\/drive\.google\.com\/(?:thumbnail|uc)\?(?:[^#]*&)?id=([\w-]+)/.exec(url);
+  return m ? `https://lh3.googleusercontent.com/d/${m[1]}=w${w}` : url;
+}
+const IMG_FALLBACK = "if(this.dataset.t){this.remove()}else{this.dataset.t=1;var m=/\\/d\\/([\\w-]+)/.exec(this.src);if(m){this.src='https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400'}else{this.remove()}}";
 const ICO = (n) => `<svg class="i"><use href="#i-${n}"/></svg>`;
 async function seedFaqs(){
   const btn = $("seed-faqs"); busy(btn, true, "Adding FAQs…");
@@ -900,7 +908,7 @@ function renderTable(tab, items){
   if (!rows.length) { $("table-wrap").innerHTML = '<div class="empty">No matches for “' + esc(q) + '”.</div>'; return; }
   $("table-wrap").innerHTML = '<div class="list">' + rows.map((it, i) => {
     const title = it.title || it.name || it.question || "Untitled";
-    const img = /^https:\/\//i.test(it.imageUrl || "") ? `<img src="${esc(it.imageUrl)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()" />` : "";
+    const img = /^https:\/\//i.test(it.imageUrl || "") ? `<img src="${esc(driveThumb(it.imageUrl, 200))}" alt="" loading="lazy" decoding="async" onerror="${IMG_FALLBACK}" />` : "";
     const thumb = `<div class="thumb">${img}${img ? "" : (tab === "FAQs" ? "?" : esc(String(title).trim().charAt(0).toUpperCase()))}</div>`;
     const sub = tab === "Testimonials" ? (it.feedback || "") : (it.desc || it.excerpt || it.answer || it.category || it.url || "");
     const meta = [];
@@ -1009,7 +1017,7 @@ function buildForm(tab, item = {}){
     let html;
     if (f.type === "textarea") html = `<textarea name="${f.key}" rows="3">${esc(item[f.key])}</textarea>`;
     else if (f.type === "select") html = `<select name="${f.key}">${f.options.map(o => `<option value="${o}" ${item[f.key]===o?"selected":""}>${o || "None"}</option>`).join("")}</select>`;
-    else if (f.type === "image") html = (/^https:\/\//i.test(item.imageUrl || "") ? `<div class="cur-img"><img src="${esc(item.imageUrl)}" alt="Current image" /><span>Current image. Choose a file only if you want to replace it.</span></div>` : "") + `<input type="file" name="${f.key}" accept="image/png,image/jpeg,image/webp,image/gif" />`;
+    else if (f.type === "image") html = (/^https:\/\//i.test(item.imageUrl || "") ? `<div class="cur-img"><img src="${esc(driveThumb(item.imageUrl, 400))}" alt="Current image" /><span>Current image. Choose a file only if you want to replace it.</span></div>` : "") + `<input type="file" name="${f.key}" accept="image/png,image/jpeg,image/webp,image/gif" /><p class="hint">JPG, PNG, WebP or GIF, up to 15 MB. Large images are resized (max 1600 px wide) and compressed to WebP before upload, and each image is saved to your Google Drive folder.</p>`;
     else html = `<input type="${f.type}" name="${f.key}" value="${esc(item[f.key])}" />`;
     wrap.innerHTML = `<label>${esc(f.label)}</label>${html}`;
     form.appendChild(wrap);
@@ -1067,43 +1075,75 @@ $("item-form").addEventListener("submit", async (e) => {
   for (const [k, v] of fd.entries()) { if (v instanceof File) { if (v.size > 0) fileInput = v; } else item[k] = v; }
 
   if (fileInput) {
+    if (!/^image\/(png|jpeg|webp|gif)$/.test(fileInput.type)) { showToast("Unsupported image type. Use JPG, PNG, WebP or GIF."); return; }
     if (fileInput.size > 15 * 1024 * 1024) { showToast("Image must be under 15MB"); return; }
-    showToast("Compressing image…");
-    const compressed = await compressImage(fileInput).catch(() => fileInput); // fall back to original on any error
-    const base64 = await fileToBase64(compressed);
-    const up = await api("uploadImage", { filename: fileInput.name, mimeType: compressed.type, base64 });
-    if (!up.ok) { showToast(up.error || "Upload failed"); return; }
-    item.imageUrl = up.url;
+    const saveBtn = $("save-btn"); busy(saveBtn, true, "Uploading…");
+    try {
+      showToast("Optimising image…");
+      const compressed = await compressImage(fileInput).catch(() => fileInput); // fall back to original on any error
+      if (compressed.size > 4.8 * 1024 * 1024) { showToast("Image is still over 5 MB after compression. Please use a smaller image."); return; }
+      const base64 = await fileToBase64(compressed);
+      showToast(`Uploading to Google Drive (${fmtSize(fileInput.size)} → ${fmtSize(compressed.size)})…`);
+      const up = await api("uploadImage", { filename: fileInput.name, mimeType: compressed.type, base64 });
+      if (!up.ok) { showToast(up.error || "Upload failed"); return; }
+      item.imageUrl = up.url;
+    } finally { busy(saveBtn, false); }
   }
 
   const r = editingId ? await api("update", { collection: currentTab, id: editingId, item }) : await api("create", { collection: currentTab, item });
-  if (r.ok) { showToast("Saved"); $("modal-backdrop").style.display = "none"; delete cache[currentTab]; loadTab(currentTab); }
+  if (r.ok) {
+    $("modal-backdrop").style.display = "none";
+    // Read the row back and check every field you filled in actually reached the Google Sheet. An out-of-date
+    // backend (or a sheet missing a column) silently drops fields, which looks like "I saved it but it isn't there".
+    const id = editingId || (r.item && r.item.id), col = currentTab;
+    const lr = await api("list", { collection: col });
+    if (lr.ok) {
+      cache[col] = lr.items;
+      const saved = lr.items.find(x => x.id === id);
+      const lost = saved ? Object.keys(item).filter(k => item[k] !== "" && item[k] != null && (saved[k] === undefined || saved[k] === "")) : [];
+      if (lost.length) showToast("Saved, but these fields were NOT stored: " + lost.join(", ") + ". Deploy the latest Code.gs as a New version, then save this again.", 9000);
+      else showToast("Saved");
+      if (currentTab === col) renderTable(col, lr.items), renderStats();
+    } else { showToast("Saved"); delete cache[col]; loadTab(col); }
+  }
   else showToast(r.error || "Save failed");
 });
 
-// Resizes to a sane max dimension and re-encodes as JPEG at 82% quality —
-// keeps uploads (and the server's 5MB cap) comfortable and makes the live
-// site noticeably faster to load, without a visible quality hit for web use.
+const fmtSize = (n) => n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+// Resizes to at most 1600 px on the long side and re-encodes as WebP (keeps transparency, far smaller than
+// PNG/JPEG). Falls back to JPEG where the browser cannot encode WebP. Aims for <= 1.5 MB by lowering quality,
+// then size, in steps. GIFs are left alone so animation survives; an already-small file is kept as is.
 function compressImage(file){
   return new Promise((resolve, reject) => {
-    if (file.type === 'image/gif') { resolve(file); return; } // don't break animated GIFs
+    if (file.type === 'image/gif') { resolve(file); return; }
     const img = new Image();
     const url = URL.createObjectURL(file);
-    img.onload = () => {
+    img.onload = async () => {
       URL.revokeObjectURL(url);
-      const maxDim = 1600;
-      let { width, height } = img;
-      if (width > maxDim || height > maxDim) {
-        const scale = maxDim / Math.max(width, height);
-        width = Math.round(width * scale); height = Math.round(height * scale);
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      canvas.toBlob(blob => {
+      const TARGET = 1.5 * 1024 * 1024;
+      let maxDim = 1600, q = 0.82, best = null;
+      const toBlob = (c, type, quality) => new Promise(r => c.toBlob(r, type, quality));
+      for (let attempt = 0; attempt < 6; attempt++) {
+        let { width, height } = img;
+        const scale = Math.min(1, maxDim / Math.max(width, height));
+        width = Math.max(1, Math.round(width * scale)); height = Math.max(1, Math.round(height * scale));
+        const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        let blob = await toBlob(canvas, 'image/webp', q);
+        if (!blob || blob.type !== 'image/webp') { // no WebP encoder: JPEG on a white background (JPEG has no alpha)
+          ctx.globalCompositeOperation = 'destination-over'; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, width, height);
+          blob = await toBlob(canvas, 'image/jpeg', q);
+        }
         if (!blob) { reject(new Error('compress failed')); return; }
-        resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }));
-      }, 'image/jpeg', 0.82);
+        best = blob;
+        if (blob.size <= TARGET) break;
+        if (q > 0.6) q -= 0.1; else maxDim = Math.round(maxDim * 0.85);
+      }
+      const ext = best.type === 'image/webp' ? '.webp' : '.jpg';
+      // keep the original if it was already smaller and within the size limit
+      if (file.size <= best.size && Math.max(img.width, img.height) <= 1600) { resolve(file); return; }
+      resolve(new File([best], file.name.replace(/\.\w+$/, '') + ext, { type: best.type }));
     };
     img.onerror = reject;
     img.src = url;
