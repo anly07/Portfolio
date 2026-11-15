@@ -625,7 +625,7 @@ $('contact-form').addEventListener('submit', async (e) => {
   try {
     const r = await apiCall('contact', { name, email, subject: f.get('subject'), message, website: f.get('website'), anonId: getAnonId(), loadedAt: _pageEnteredAt });
     if (r.ok) { setStatus(status, 'ok', "Message sent. Thanks! I'll get back to you soon."); toast('Message sent'); form.reset(); }
-    else setStatus(status, 'bad', (r.error || 'Something went wrong.') + ' Please try again, or email hello@ainsleyc.dev.');
+    else setStatus(status, 'bad', (r.error || 'Something went wrong.') + ' Please try again');
   } catch (err) {
     setStatus(status, 'bad', "Couldn't reach the server. Check your connection and try again.");
   } finally { setLoading(btn, false, 'Send message'); }

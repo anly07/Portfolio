@@ -142,7 +142,7 @@ is far more than a portfolio contact form needs.
 | Page/event tracking | A random ID (not a cookie, no PII) is generated in `localStorage` on first visit. Page loads and a few key clicks (Let's talk, view project, submit contact) are logged to the `PageViews`/`Events` tabs, rate-limited per ID so the endpoint can't be flooded. |
 | SEO basics | Your existing meta tags/OG/Twitter/JSON-LD were already solid — left as-is. Added: `robots.txt` now disallows the two admin pages from being indexed, and `sitemap.xml` includes the new Privacy/Terms pages. |
 | Privacy & Terms | `site/privacy.html` and `site/terms.html` — plain-language pages describing what the contact/feedback forms collect and how testimonials get published, linked from the footer. |
-| Contact support email | The existing "Drop a message" link in the footer (`mailto:hello@ainsleyc.dev`) is your public-facing support address — separate from the hidden `CONTACT_EMAIL` backend address, so you can give this one out freely without exposing your primary inbox. Update it to whatever address you want visitors to see. |
+| Contact support email | The existing "Drop a message" link in the footer is your public-facing support address — separate from the hidden `CONTACT_EMAIL` backend address, so you can give this one out freely without exposing your primary inbox. Update it to whatever address you want visitors to see. |
 | Spam protection | Both public forms include a hidden honeypot field real visitors never fill in, plus a per-visitor rate limit (5 submissions / 10 minutes) enforced server-side. |
 
 ## Everything is now built
