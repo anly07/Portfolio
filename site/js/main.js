@@ -6,7 +6,7 @@
 'use strict';
 
 /* ---------- Backend config (unchanged contract) ---------- */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKbUDLrkVJqw4D8FsZ9akzXvLfBvb1iounKKR8IyaDyOD5BY9nnkMdYJtyistbqN_oKg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJbNdIc8w5P1skSUZcNVHD_pKTWEKsAodd1KFjsSLpjByS_dSw96_OIhgkc_8upRixDg/exec";
 
 function apiCall(action, payload = {}) {
   return fetch(APPS_SCRIPT_URL, {
@@ -481,6 +481,21 @@ $('blog-more').addEventListener('click', () => { blogShown += 6; renderBlog(); }
 
 /* Fetch admin-managed content and render every section. If a fetch fails, each
    section fails gracefully with a quiet empty state instead of breaking the page. */
+/* FAQ: the page ships with a crawlable default set (HTML + FAQPage JSON-LD). When the admin has
+   saved FAQs they replace it, and the structured data is rewritten to match what is visible. */
+function renderFaqs(list) {
+  const items = (Array.isArray(list) ? list : []).filter(f => f && f.question && f.answer).slice(0, 24);
+  if (!items.length) return;
+  $('faq-grid').innerHTML = items.map((f, i) => `
+    <details class="faq-item"${i === 0 ? ' open' : ''}>
+      <summary><h3>${esc(f.question)}</h3><span class="faq-ico" aria-hidden="true"></span></summary>
+      <div class="faq-a"><p>${esc(f.answer)}</p></div>
+    </details>`).join('');
+  const ld = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: items.map(f => ({ '@type': 'Question', name: String(f.question), acceptedAnswer: { '@type': 'Answer', text: String(f.answer) } })) };
+  const tag = document.getElementById('faq-jsonld');
+  if (tag) tag.textContent = JSON.stringify(ld).replace(/</g, '\\u003c');
+}
+
 async function loadPublicContent() {
   const empty = (m) => `<p class="empty">${m}</p>`;
   try {
@@ -490,11 +505,12 @@ async function loadPublicContent() {
     if (!projCar) projCar = makeCarousel($('project-grid'), 'p');
     if (!designCar) designCar = makeCarousel($('design-grid'), 'd');
     renderProjects(); renderDesigns(false); renderBlog();
+    renderFaqs(r.faqs);
     const tools = r.tools || [];
-    $('tool-dock').innerHTML = tools.length ? tools.map(toolTile).join('') : empty('Tool list coming soon.');
-    observeReveals($('tool-dock'));
+    const dock = $('tool-dock'); // the Tools section may be commented out of the page
+    if (dock) { dock.innerHTML = tools.length ? tools.map(toolTile).join('') : empty('Tool list coming soon.'); observeReveals(dock); }
   } catch (err) {
-    ['project-grid', 'design-grid', 'blog-grid', 'tool-dock'].forEach(id => { $(id).innerHTML = empty('Content is temporarily unavailable. Please refresh in a moment.'); });
+    ['project-grid', 'design-grid', 'blog-grid', 'tool-dock'].forEach(id => { const el = $(id); if (el) el.innerHTML = empty('Content is temporarily unavailable. Please refresh in a moment.'); });
   }
 }
 loadPublicContent();

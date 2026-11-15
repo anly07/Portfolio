@@ -48,6 +48,10 @@
 // CONFIG
 // ---------------------------------------------------------------------------
 // Per-execution memo (globals persist only within one execution; doPost resets them).
+// Bump when the backend changes; the admin page shows it so you can tell whether the
+// latest Code.gs is really the version deployed (Deploy → Manage deployments → New version).
+var BACKEND_VERSION = '3.0-faq-fast';
+var START_MS_ = 0;
 var MEMO_ = { cfg: null, ss: null, sheets: {} };
 function resetMemo_() { MEMO_ = { cfg: null, ss: null, sheets: {} }; }
 
@@ -65,7 +69,7 @@ function CFG_() {
     HASH_ROUNDS: 2000,
     MAX_UPLOAD_BYTES: 5 * 1024 * 1024, // 5 MB
     ALLOWED_IMAGE_TYPES: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
-    ALLOWED_COLLECTIONS: ['Projects', 'Designs', 'Tools', 'Blog', 'Testimonials'],
+    ALLOWED_COLLECTIONS: ['Projects', 'Designs', 'Tools', 'Blog', 'Testimonials', 'FAQs'],
     // Where contact-form mail is sent. Set as a script property so it never
     // needs to appear in any file that ships to the browser.
     CONTACT_EMAIL: p.getProperty('CONTACT_EMAIL') || 'PUT_YOUR_EMAIL_IN_SCRIPT_PROPERTIES',
@@ -76,10 +80,17 @@ function CFG_() {
   return MEMO_.cfg;
 }
 
+var AUTO_SHEETS_ = { FAQs: ['id', 'question', 'answer', 'order', 'updatedAt'] };
 function ss_() { if (!MEMO_.ss) MEMO_.ss = SpreadsheetApp.openById(CFG_().SHEET_ID); return MEMO_.ss; }
 function sheet_(name) {
   if (MEMO_.sheets[name]) return MEMO_.sheets[name];
   var sh = ss_().getSheetByName(name);
+  if (!sh && AUTO_SHEETS_[name]) {
+    // Optional tabs added after the first release are created on demand, so upgrading
+    // never needs a manual spreadsheet step (and never breaks the public site).
+    try { sh = ss_().insertSheet(name); sh.getRange(1, 1, 1, AUTO_SHEETS_[name].length).setValues([AUTO_SHEETS_[name]]); }
+    catch (e) { sh = ss_().getSheetByName(name); }
+  }
   if (!sh) throw new AppError_('E_NO_SHEET', 'Missing sheet tab: ' + name);
   MEMO_.sheets[name] = sh;
   return sh;
@@ -105,6 +116,7 @@ function setupSheets_() {
     Tools: ['id', 'name', 'icon', 'url', 'order', 'updatedAt', 'desc', 'category'],
     Blog: ['id', 'title', 'excerpt', 'url', 'date', 'updatedAt', 'tag', 'imageUrl', 'readTime', 'category'],
     Testimonials: ['id', 'name', 'rating', 'feedback', 'approved', 'createdAt', 'role'],
+    FAQs: ['id', 'question', 'answer', 'order', 'updatedAt'],
     Settings: ['key', 'value'],
     Contacts: ['id', 'name', 'email', 'subject', 'message', 'createdAt'],
     AuditLog: ['timestamp', 'actor', 'action', 'detail'],
@@ -227,6 +239,7 @@ function doGet(e) {
 
 function doPost(e) {
   resetMemo_();
+  START_MS_ = Date.now();
   var reqId = Utilities.getUuid();
   try {
     globalThrottle_(); // blunt scripted floods (see notes on IP limitation)
@@ -296,7 +309,7 @@ function safeError_(err, reqId) {
   // Validation messages are written by this script (e.g. "Passwords do not
   // match") and never contain secrets or internals, so they're safe — and far
   // more useful than a generic "some fields are invalid".
-  if (code === 'E_BAD_INPUT' && err && err.message) resp.error = String(err.message).slice(0, 200);
+  if ((code === 'E_BAD_INPUT' || code === 'E_UPLOAD') && err && err.message) resp.error = String(err.message).slice(0, 200);
 
   // OPTIONAL troubleshooting switch, OFF by default: set the Script Property
   // DEBUG_ERRORS to the text "true" and unexpected server errors will include
@@ -312,6 +325,7 @@ function safeError_(err, reqId) {
 }
 
 function jsonOut_(obj) {
+  if (obj && typeof obj === 'object' && !Array.isArray(obj)) { obj.v = BACKEND_VERSION; obj.ms = START_MS_ ? Date.now() - START_MS_ : 0; }
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -510,7 +524,6 @@ function handleLogin_(payload) {
   // Password OK — issue a short-lived ticket, require TOTP next.
   var ticket = Utilities.getUuid();
   CacheService.getScriptCache().put('ticket_' + ticket, username, CFG_().LOGIN_TICKET_TTL_SEC);
-  audit_(username, 'LOGIN_STEP1_OK', '');
   return { ok: true, stage: '2fa', ticket: ticket };
 }
 
@@ -757,7 +770,8 @@ function validateItem_(collection, item) {
     Designs: { title: 200, desc: 2000, tags: 300, imageUrl: 500, url: 500, status: 20, order: 0, upcomingDate: 40, category: 60 },
     Tools: { name: 100, icon: 500, url: 500, order: 0, desc: 200, category: 60 },
     Blog: { title: 200, excerpt: 2000, url: 500, date: 40, tag: 20, imageUrl: 500, readTime: 20, category: 60 },
-    Testimonials: { name: 100, rating: 0, feedback: 2000, approved: 0, role: 100 }
+    Testimonials: { name: 100, rating: 0, feedback: 2000, approved: 0, role: 100 },
+    FAQs: { question: 200, answer: 2000, order: 0 }
   };
   var spec = rules[collection];
   var clean = {};
@@ -809,16 +823,16 @@ function uploadImage_(payload, username) {
   var safeName = Utilities.getUuid() + '.' + extByMime[mimeType];
 
   var blob = Utilities.newBlob(bytes, mimeType, safeName);
+  if (String(CFG_().DRIVE_FOLDER_ID).indexOf('PUT_YOUR_DRIVE') !== -1) throw new AppError_('E_UPLOAD', 'Drive folder not configured (set the DRIVE_FOLDER_ID script property).');
   var folder = DriveApp.getFolderById(CFG_().DRIVE_FOLDER_ID);
   var file = folder.createFile(blob);
-  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }
+  catch (shareErr) { throw new AppError_('E_UPLOAD', 'Saved to Drive, but your Google account blocks "anyone with the link" sharing, so visitors cannot see the image.'); }
 
-  // drive.google.com/uc?export=view is well known to intermittently break
-  // when hotlinked directly in an <img> tag (Google sometimes serves an
-  // interstitial/warning page instead of the raw image). The /thumbnail
-  // endpoint is the documented, reliable way to embed a Drive file as an
-  // image — sz=w1600 requests a version up to 1600px wide.
-  var url = 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1600';
+  // Embed through lh3.googleusercontent.com/d/<id>: Google's image CDN for public Drive files.
+  // It is far more dependable in an <img> tag than drive.google.com/uc or /thumbnail (which
+  // can return a warning page or 403 when hot-linked). "=w1600" asks for up to 1600px wide.
+  var url = 'https://lh3.googleusercontent.com/d/' + file.getId() + '=w1600';
   audit_(username, 'UPLOAD', safeName + ' (' + filename + ')');
   return { ok: true, url: url };
 }
@@ -957,13 +971,23 @@ function sortByOrder_(items) {
     return oa - ob;
   });
 }
+// FAQs never break the rest of the public site if anything is off with that tab.
+function publicFaqs_() {
+  try {
+    return sortByOrder_(sheetToObjects_(sheet_('FAQs')))
+      .filter(function (f) { return f.question && f.answer; })
+      .map(function (f) { return { id: f.id, question: f.question, answer: f.answer, order: f.order }; });
+  } catch (e) { return []; }
+}
+
 function handlePublicContent_() {
   return {
     ok: true,
     projects: sortByOrder_(sheetToObjects_(sheet_('Projects'))),
     designs: sortByOrder_(sheetToObjects_(sheet_('Designs'))),
     tools: sortByOrder_(sheetToObjects_(sheet_('Tools'))),
-    blog: sheetToObjects_(sheet_('Blog')).sort(function (a, b) { return new Date(b.updatedAt) - new Date(a.updatedAt); })
+    blog: sheetToObjects_(sheet_('Blog')).sort(function (a, b) { return new Date(b.updatedAt) - new Date(a.updatedAt); }),
+    faqs: publicFaqs_()
   };
 }
 

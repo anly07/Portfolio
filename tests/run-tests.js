@@ -390,6 +390,21 @@ resetThrottles();
     const brow = doPost('publicContent', {}).blog.find((i) => i.id === b.item.id);
     check('blog image / read time / category round-trip', brow && brow.imageUrl === 'https://i.test/a.jpg' && brow.readTime === '4 min' && brow.category === 'Design', brow);
     doPost('delete', { token: TOKEN, collection: 'Blog', id: b.item.id });
+    // --- FAQs: admin-managed, public, and resilient when the tab doesn't exist yet ---
+    delete mock.state.fakeSS.sheets['FAQs']; // simulate a spreadsheet created before FAQs existed
+    sandbox.resetMemo_();
+    check('publicContent still works with no FAQs tab (auto-created, empty list)', Array.isArray(doPost('publicContent', {}).faqs) && doPost('publicContent', {}).faqs.length === 0);
+    const f2 = doPost('create', { token: TOKEN, collection: 'FAQs', item: { question: 'Second?', answer: 'Yes.', order: 2 } });
+    const f1 = doPost('create', { token: TOKEN, collection: 'FAQs', item: { question: 'First?', answer: 'Of course.', order: 1 } });
+    doPost('create', { token: TOKEN, collection: 'FAQs', item: { question: '<script>x</script>Q', answer: 'A', order: 3 } });
+    const pf = doPost('publicContent', {}).faqs;
+    check('FAQs are served publicly, sorted by order', pf.length === 3 && pf[0].question === 'First?' && pf[1].question === 'Second?', pf);
+    check('FAQ list requires a session', doPost('list', { collection: 'FAQs' }).ok === false);
+    doPost('update', { token: TOKEN, collection: 'FAQs', id: f1.item.id, item: { question: 'First edited?', answer: 'Yes', order: 1 } });
+    check('FAQ edit is reflected publicly', doPost('publicContent', {}).faqs[0].question === 'First edited?');
+    doPost('delete', { token: TOKEN, collection: 'FAQs', id: f2.item.id });
+    check('FAQ delete works', doPost('publicContent', {}).faqs.length === 2);
+    check('responses carry backend version + timing', typeof doPost('setupStatus', {}).v === 'string');
     const t = doPost('create', { token: TOKEN, collection: 'Testimonials', item: { name: 'Pat', rating: 5, feedback: 'Great', approved: 'TRUE', role: 'CEO, Acme' } });
     check('testimonial role is exposed publicly; unapproved ones stay hidden', doPost('publicTestimonials', {}).items.some((i) => i.name === 'Pat' && i.role === 'CEO, Acme'));
     doPost('update', { token: TOKEN, collection: 'Testimonials', id: t.item.id, item: { name: 'Pat', rating: 5, feedback: 'Great', approved: 'FALSE' } });

@@ -195,6 +195,9 @@
   .bar-row .track{grid-column:1 / -1;height:6px;border-radius:6px;background:var(--surface-2);overflow:hidden;}
   .bar-row .fill{height:100%;border-radius:6px;background:var(--gradient-accent);}
   .sec-table{width:100%;border-collapse:collapse;} .sec-table td{padding:8px 6px;border-bottom:1px solid var(--border);font-size:12.5px;} .sec-table tr:last-child td{border-bottom:none;}
+  #stale{position:fixed;left:12px;right:12px;bottom:12px;z-index:40;max-width:640px;margin:0 auto;padding:14px 18px;border-radius:var(--radius-sm);background:color-mix(in srgb,var(--danger) 14%,var(--card));border:1px solid var(--danger);color:var(--text);font-size:13px;box-shadow:var(--shadow);}
+  #stale[hidden]{display:none;}
+  .diag{font-size:11px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;min-height:14px;}
   .cfg{display:flex;gap:10px;align-items:flex-start;font-size:13px;padding:6px 0;}
   .set-h{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;}
   .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
@@ -263,6 +266,7 @@
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.9 6.4 20l1.3-6.2L3 9.5l6.3-.7z"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
 </svg>
 
@@ -355,7 +359,8 @@
       <div class="err" id="err" role="alert"></div>
       <div class="ok-msg" id="ok-msg" role="status"></div>
       <div class="card-foot">
-        <a href="../index.html" class="back">← Back to site</a>
+        <div class="diag" id="diag" aria-live="off"></div>
+        <a href="index.html" class="back">← Back to site</a>
         <div>
           <a href="privacy.html" class="back">Privacy Policy</a>
           <a href="terms.html" class="back">Terms &amp; Conditions</a>
@@ -376,6 +381,7 @@
         <button data-tab="Designs"><svg class="i"><use href="#i-design"/></svg>Designs</button>
         <button data-tab="Tools"><svg class="i"><use href="#i-tool"/></svg>Tools</button>
         <button data-tab="Blog"><svg class="i"><use href="#i-blog"/></svg>Blog</button>
+        <button data-tab="FAQs"><svg class="i"><use href="#i-help"/></svg>FAQs</button>
         <button data-tab="Testimonials"><svg class="i"><use href="#i-chat"/></svg>Testimonials</button>
         <button data-tab="Analytics"><svg class="i"><use href="#i-chart"/></svg>Analytics</button>
         <button data-tab="Settings"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
@@ -391,6 +397,7 @@
           <option value="60">Auto-logout: 1 hr</option>
           <option value="120">Auto-logout: 2 hr</option>
         </select>
+        <div class="diag" id="diag-d"></div>
         <div class="row">
           <button type="button" id="theme-toggle-2" class="icon-btn theme-icon" aria-label="Switch theme"><svg class="i moon"><use href="#i-moon"/></svg><svg class="i sun"><use href="#i-sun"/></svg></button>
           <button id="logout" type="button"><svg class="i"><use href="#i-out"/></svg>Log out</button>
@@ -434,6 +441,7 @@
 </div>
 
 <div class="toast" id="toast" role="status"></div>
+<div id="stale" role="alert" hidden><b>Your Apps Script backend is out of date.</b> Open Apps Script → Deploy → Manage deployments → ✎ Edit → Version: <b>New version</b> → Deploy. Until then sign-in stays slow and newer features (FAQs, colour presets) won't work.</div>
 
 <script>
 /* =========================================================================
@@ -444,12 +452,19 @@
    trade-off: nothing durable on the client for an attacker (e.g. via XSS)
    to read after the fact.
    ========================================================================= */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKbUDLrkVJqw4D8FsZ9akzXvLfBvb1iounKKR8IyaDyOD5BY9nnkMdYJtyistbqN_oKg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJbNdIc8w5P1skSUZcNVHD_pKTWEKsAodd1KFjsSLpjByS_dSw96_OIhgkc_8upRixDg/exec";
 let token = null;
 
+function noteTiming(d, total){
+  const stale = !(d && d.v);
+  $("stale").hidden = !stale;
+  const txt = stale ? "" : `Backend v${d.v} · server ${(d.ms / 1000).toFixed(1)}s · total ${(total / 1000).toFixed(1)}s`;
+  ["diag", "diag-d"].forEach(id => { const el = $(id); if (el) el.textContent = txt; });
+}
 async function api(action, payload = {}) {
   const body = token ? { ...payload, token } : payload;
   let data;
+  const t0 = performance.now();
   try {
     const res = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
@@ -470,6 +485,7 @@ async function api(action, payload = {}) {
         : "Could not reach the server. Check your connection and try again."
     };
   }
+  noteTiming(data, performance.now() - t0);
   if (!data.ok && data.code === "E_SESSION") { token = null; clearTimeout(idleTimer); showLoginView(); showError("Session expired — please log in again."); }
   return data;
 }
@@ -477,10 +493,17 @@ async function api(action, payload = {}) {
 const $ = (id) => document.getElementById(id);
 function showError(msg){ $("err").textContent = msg || ""; $("ok-msg").textContent = ""; }
 function showOk(msg){ $("ok-msg").textContent = msg || ""; $("err").textContent = ""; }
+let slowTimer = null;
 function busy(btn, on, label){
   if (!btn) return;
-  if (on) { btn.dataset.l = btn.textContent; btn.disabled = true; btn.classList.add("loading"); if (label) btn.textContent = label; }
-  else { btn.disabled = false; btn.classList.remove("loading"); if (btn.dataset.l) { btn.textContent = btn.dataset.l; delete btn.dataset.l; } }
+  if (on) {
+    btn.dataset.l = btn.textContent; btn.disabled = true; btn.classList.add("loading"); if (label) btn.textContent = label;
+    clearTimeout(slowTimer);
+    slowTimer = setTimeout(() => { $("ok-msg").textContent = "Still working — Google's server is taking longer than usual. Please don't refresh."; }, 8000);
+  } else {
+    clearTimeout(slowTimer); if ($("ok-msg").textContent.indexOf("Still working") === 0) $("ok-msg").textContent = "";
+    btn.disabled = false; btn.classList.remove("loading"); if (btn.dataset.l) { btn.textContent = btn.dataset.l; delete btn.dataset.l; }
+  }
 }
 function showToast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
@@ -490,7 +513,7 @@ function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","
    ========================================================================= */
 function showLoginView(){
   $("view-dashboard").style.display = "none";
-  $("view-login").style.display = "flex";
+  $("view-login").style.display = "grid";
 }
 function showDashboardView(){
   $("view-login").style.display = "none";
@@ -503,7 +526,7 @@ function showDashboardView(){
 // After sign-in, quietly load every other collection in parallel so tab
 // switches are instant (instead of one network round-trip per tab click).
 function prefetchAll(){
-  ["Designs","Tools","Blog","Testimonials"].forEach(t => {
+  ["Designs","Tools","Blog","FAQs","Testimonials"].forEach(t => {
     api("list", { collection: t }).then(r => { if (r.ok) { cache[t] = r.items; if (currentTab === t) renderTable(t, r.items); renderStats(); } });
   });
 }
@@ -693,17 +716,19 @@ $("step-forgot-reset").addEventListener("submit", async (e) => {
 let currentTab = "Projects";
 let cache = {}; // in-memory only, per tab — lets tab switches render instantly
 
+const STARTER_FAQS = [{"question": "What services do you offer as a product designer and front-end developer?", "answer": "I'm Ainsley C., a product designer and front-end developer. I offer UI/UX design, Figma design systems and front-end development with React and Next.js, from the first wireframe to a responsive, working interface. Because I design the screens and build them in code, nothing gets lost between design and development."}, {"question": "What kinds of projects have you built?", "answer": "My work includes task management systems for creating, assigning, prioritising and tracking tasks, a bike management app that tracks fuel, mileage, maintenance and expenses, energy management interfaces, and Figma design systems. Each project in the Projects section lists the technologies used and, where available, a live link and GitHub repository."}, {"question": "Can you design and build real-time dashboards and monitoring systems?", "answer": "Yes. Real-time dashboards and monitoring systems are a core part of what I do. I design the data-heavy screens in Figma, then build them with React and Next.js so live numbers, statuses and charts stay clear, fast and easy to read on any device."}, {"question": "Which technologies and design tools do you use?", "answer": "For design I use Figma for UI/UX, wireframes and design systems. For development I use React and Next.js with Tailwind CSS, plus motion design for small interaction details. Turning a Figma design system into reusable code components is a regular part of my workflow."}, {"question": "Can you improve the SEO and speed of my website?", "answer": "Yes. SEO optimisation is part of how I build websites: semantic HTML, clear headings, descriptive meta titles and descriptions, structured data such as the FAQ markup on this page, fast-loading pages and mobile-friendly layouts, so search engines can understand and rank your content. If you already have a site, get in touch and I can look at where it can improve."}, {"question": "Are you available for freelance work, and how do I contact you?", "answer": "Yes, I'm currently open to freelance projects. The quickest way to reach me is the contact form in the Contact section of this page: tell me what you're building and I'll reply by email. You can also connect with me on LinkedIn."}];
 const FIELD_SPECS = {
   Projects: [ {key:"title",label:"Title",type:"text"}, {key:"category",label:"Category (shown as a label on the card, e.g. Web App)",type:"text"}, {key:"desc",label:"Description",type:"textarea"}, {key:"tags",label:"Technologies (comma separated)",type:"text"}, {key:"url",label:"Live URL",type:"text"}, {key:"githubUrl",label:"GitHub URL",type:"text"}, {key:"status",label:"Badge",type:"select",options:["","new","upcoming"]}, {key:"upcomingDate",label:"Countdown target (if Upcoming)",type:"datetime-local"}, {key:"order",label:"Sort order",type:"number"}, {key:"image",label:"Image",type:"image"} ],
   Designs: [ {key:"title",label:"Title",type:"text"}, {key:"category",label:"Category (shown as a label on the card)",type:"text"}, {key:"desc",label:"Description",type:"textarea"}, {key:"tags",label:"Tags (comma separated)",type:"text"}, {key:"url",label:"External link",type:"text"}, {key:"status",label:"Badge",type:"select",options:["","new","upcoming"]}, {key:"upcomingDate",label:"Countdown target (if Upcoming)",type:"datetime-local"}, {key:"order",label:"Sort order",type:"number"}, {key:"image",label:"Image",type:"image"} ],
   Tools: [ {key:"name",label:"Name",type:"text"}, {key:"category",label:"Category (e.g. Design, Utility)",type:"text"}, {key:"desc",label:"Short description",type:"text"}, {key:"icon",label:"Icon: an emoji, or an https image URL",type:"text"}, {key:"url",label:"URL",type:"text"}, {key:"order",label:"Sort order",type:"number"} ],
   Blog: [ {key:"title",label:"Title",type:"text"}, {key:"tag",label:"Type",type:"select",options:["Blog","Reel"]}, {key:"category",label:"Category",type:"text"}, {key:"excerpt",label:"Excerpt",type:"textarea"}, {key:"url",label:"URL",type:"text"}, {key:"date",label:"Date (e.g. 2026-10-02)",type:"text"}, {key:"readTime",label:"Reading time (e.g. 5 min)",type:"text"}, {key:"image",label:"Thumbnail image",type:"image"} ],
+  FAQs: [ {key:"question",label:"Question",type:"text"}, {key:"answer",label:"Answer (plain text, up to ~2000 characters)",type:"textarea"}, {key:"order",label:"Sort order (1 = first)",type:"number"} ],
   Testimonials: [ {key:"name",label:"Name",type:"text"}, {key:"role",label:"Designation / company (optional)",type:"text"}, {key:"rating",label:"Rating (1-5)",type:"number"}, {key:"feedback",label:"Feedback",type:"textarea"}, {key:"approved",label:"Show on site",type:"select",options:["TRUE","FALSE"]} ]
 };
 
 const TAB_SUB = {
   Projects: "Product builds shown in the Projects carousel.", Designs: "Pieces shown in the Designs carousel.", Tools: "Tools and resources listed on your site.",
-  Blog: "Posts and reels shown in the Blog section.", Testimonials: "Review and publish visitor feedback.", Analytics: "Traffic and engagement at a glance.", Settings: "Appearance and personalisation of the public site."
+  Blog: "Posts and reels shown in the Blog section.", FAQs: "Questions shown above “What people say”. Also published as FAQ rich-result data for Google.", Testimonials: "Review and publish visitor feedback.", Analytics: "Traffic and engagement at a glance.", Settings: "Appearance and personalisation of the public site."
 };
 document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => loadTab(b.dataset.tab)));
 async function doLogout(){ const t = token; token = null; clearTimeout(idleTimer); cache = {}; showLoginView(); init(); if (t) { try { await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "logout", payload: { token: t } }), keepalive: true }); } catch (e) {} } }
@@ -763,10 +788,14 @@ async function renderSettings(){
   if (currentTab !== "Settings") return;
   if (!r.ok) { $("table-wrap").innerHTML = `<div class="empty">${esc(r.error)}</div>`; return; }
 
-  const meta = r.presetMeta || FALLBACK_PRESETS;
-  const keys = (r.presets && r.presets.length) ? r.presets : Object.keys(meta);
+  // Merge with the built-in list and drop anything unusable, so the colour options always render
+  // (an out-of-date backend can send a different/partial list).
+  const meta = Object.assign({}, FALLBACK_PRESETS, r.presetMeta || {});
+  let keys = ((r.presetMeta && r.presets && r.presets.length) ? r.presets : Object.keys(FALLBACK_PRESETS)).filter(k => meta[k] && /^#[0-9a-fA-F]{6}$/.test(meta[k].accent || ""));
+  if (!keys.length) keys = Object.keys(FALLBACK_PRESETS);
+  keys.forEach(k => { if (!meta[k].name) meta[k].name = k; if (!/^#[0-9a-fA-F]{6}$/.test(meta[k].accent2 || '')) meta[k].accent2 = meta[k].accent; });
   const defaults = r.defaults || { accentPreset:'violet', themeMode:'system' };
-  const saved = { accentPreset: r.accentPreset, themeMode: r.themeMode || 'system' };
+  const saved = { accentPreset: meta[r.accentPreset] ? r.accentPreset : (defaults.accentPreset || 'violet'), themeMode: r.themeMode || 'system' };
   const pending = { accentPreset: saved.accentPreset, themeMode: saved.themeMode };
   const MODES = [['light','Light'],['dark','Dark'],['system','System default']];
 
@@ -848,16 +877,32 @@ async function renderSettings(){
 }
 
 const ICO = (n) => `<svg class="i"><use href="#i-${n}"/></svg>`;
+async function seedFaqs(){
+  const btn = $("seed-faqs"); busy(btn, true, "Adding FAQs…");
+  for (let i = 0; i < STARTER_FAQS.length; i++) {
+    const r = await api("create", { collection: "FAQs", item: { ...STARTER_FAQS[i], order: i + 1 } });
+    if (!r.ok) { busy(btn, false); showToast(r.error || "Could not add FAQs"); return; }
+  }
+  const r = await api("list", { collection: "FAQs" });
+  if (r.ok) { cache.FAQs = r.items; renderTable("FAQs", r.items); renderStats(); }
+  showToast("6 starter FAQs added — edit them any time");
+}
 function renderTable(tab, items){
   const q = ($("list-search").value || "").trim().toLowerCase();
-  if (!items.length) { $("table-wrap").innerHTML = '<div class="empty">Nothing here yet — click “Add new”.</div>'; return; }
+  if (!items.length) {
+    $("table-wrap").innerHTML = tab === "FAQs"
+      ? '<div class="empty">No FAQs saved yet — your site is showing its built-in default set.<br><br><button type="button" class="btn" id="seed-faqs">Load the 6 starter FAQs so I can edit them</button></div>'
+      : '<div class="empty">Nothing here yet — click “Add new”.</div>';
+    const sb = $("seed-faqs"); if (sb) sb.addEventListener("click", seedFaqs);
+    return;
+  }
   const rows = q ? items.filter(it => Object.values(it).some(v => typeof v === "string" && v.toLowerCase().includes(q))) : items;
   if (!rows.length) { $("table-wrap").innerHTML = '<div class="empty">No matches for “' + esc(q) + '”.</div>'; return; }
   $("table-wrap").innerHTML = '<div class="list">' + rows.map((it, i) => {
-    const title = it.title || it.name || "Untitled";
+    const title = it.title || it.name || it.question || "Untitled";
     const img = /^https:\/\//i.test(it.imageUrl || "") ? `<img src="${esc(it.imageUrl)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()" />` : "";
-    const thumb = `<div class="thumb">${img}${img ? "" : esc(String(title).trim().charAt(0).toUpperCase())}</div>`;
-    const sub = tab === "Testimonials" ? (it.feedback || "") : (it.desc || it.excerpt || it.category || it.url || "");
+    const thumb = `<div class="thumb">${img}${img ? "" : (tab === "FAQs" ? "?" : esc(String(title).trim().charAt(0).toUpperCase()))}</div>`;
+    const sub = tab === "Testimonials" ? (it.feedback || "") : (it.desc || it.excerpt || it.answer || it.category || it.url || "");
     const meta = [];
     if (it.status) meta.push(`<span class="badge ${esc(it.status)}">${esc(it.status)}</span>`);
     if (tab === "Testimonials") {
@@ -881,6 +926,11 @@ function renderTable(tab, items){
 const statCard = (icon, num, lbl, i) => `<div class="stat" style="animation-delay:${i * 50}ms"><div class="ico">${ICO(icon)}</div><div><div class="num">${num}</div><div class="lbl">${lbl}</div></div></div>`;
 function renderStats(){
   if (currentTab === "Analytics" || currentTab === "Settings") return;
+  if (currentTab === "FAQs") {
+    const n = cache.FAQs ? cache.FAQs.length : "…";
+    $("stats").innerHTML = statCard("help", n, "FAQs on your site", 0) + statCard("star", "6+", "Recommended for Google", 1);
+    return;
+  }
   const testimonials = cache.Testimonials || [];
   const projects = cache.Projects || [];
   const approved = testimonials.filter(t => String(t.approved).toUpperCase() === "TRUE");

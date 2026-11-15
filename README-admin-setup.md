@@ -693,3 +693,9 @@ is missing, which is the most common cause.
 - Sessions are now cached in `CacheService`; the Sessions sheet remains the source of truth and is refreshed every 5 minutes. Logout, password reset and "invalidate all sessions" revoke the cache entry immediately.
 - Projects and Designs are carousels (`01 / 08` counter, arrows). The Category field is now just a label on the card; there are no filter chips.
 - The "Forgot password" email is sent through `MailApp`, which takes about a second on Google's side.
+
+## Update notes (FAQ system, diagnostics)
+
+- **FAQs:** new "FAQs" tab in the admin (question, answer, sort order). The FAQs tab is created automatically in your Google Sheet the first time it is used. The public page ships with 6 default FAQs (plain HTML plus `FAQPage` structured data) so Google can read them even before you save any. As soon as you save at least one FAQ in the admin, your list replaces the defaults and the structured data is rewritten to match.
+- **Is the new backend really deployed?** The admin now shows `Backend v3.0-faq-fast · server 0.4s · total 1.2s` under the login card and in the sidebar. If that line is missing, or a red "backend is out of date" bar appears, the old Code.gs is still live: Apps Script → Deploy → Manage deployments → ✎ → Version: **New version** → Deploy. Saving Code.gs alone does not update the live web app.
+- Fixed: the public page no longer replaces Projects/Designs/Blog with "temporarily unavailable" when the (commented-out) Tools section is missing.
